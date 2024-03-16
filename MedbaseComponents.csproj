@@ -4,15 +4,19 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+	  <UseMauiEssentials>true</UseMauiEssentials>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+	  <PackageId>MedbaseComponents</PackageId>
+	  <Version>1</Version>
+	  <Author>Tanaka Mawere</Author>
+	  <Product>Medbase</Product>
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  <PackageReadmeFile>readme.md</PackageReadmeFile>
   </PropertyGroup>
-
-  <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Markdig" Version="0.35.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.3" />
 		<PackageReference Include="MudBlazor" Version="6.6.0" />
 		<PackageReference Include="MudBlazor.Markdown" Version="0.1.1" />
 	</ItemGroup>
@@ -20,6 +24,9 @@
   <ItemGroup>
     <Folder Include="wwwroot\" />
   </ItemGroup>
+	<ItemGroup>
+		<None Include="readme.md" Pack="true" PackagePath="." />
+	</ItemGroup>
 
   <ItemGroup>
     <Content Update="Pages\Auth\SignIn.razor">

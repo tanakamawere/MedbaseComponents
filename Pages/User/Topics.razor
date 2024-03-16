@@ -2,13 +2,17 @@
 @using MedbaseComponents.Models
 @using MedbaseComponents.Services
 @using MedbaseComponents.Controls
+@using Microsoft.Maui.Devices
 @inject IApiRepository repository
 @inject IDialogService DialogService
 @inject NavigationManager navManager
+@inject IPlatformInfoService platformInfoService;
+@inject ISnackbar Snackbar
 
 <PageTitle>@title</PageTitle>
-    <HeadContent>
-        <title>@title</title>
+
+<HeadContent>
+    <title>@title</title>
     <meta name="title" content="@title" />
     <meta name="description" content="@description" />
 
@@ -53,8 +57,7 @@
                                     </CardHeaderContent>
                                 </MudCardHeader>
                                 <MudCardActions>
-                                    <MudButton Variant="Variant.Text" Color="Color.Primary" Href="@($"questions/{item.TopicRef}")">View</MudButton>
-                                    <MudButton Variant="Variant.Text" Color="Color.Secondary" @onclick="() => OpenDialog(item.TopicRef)">Quiz</MudButton>
+                                    <MudButton Variant="Variant.Text" Color="Color.Primary" Href="@($"/questions/{item.TopicRef}/online")">MCQs</MudButton>
                                 </MudCardActions>
                             </MudCard>
                             @*<div class="card h-100 shadow border-0">
@@ -94,7 +97,7 @@
     private bool negativeMarking = false;
     private int numberOfQuestions = 1;
     private bool isLoading;
-
+    private Snackbar snackbar;
     private string description = "Topics on your chosen topic";
     private string title = "Topics | Medbase";
     private string image = "https://i.postimg.cc/T1DjN4S5/Logo.png";
