@@ -28,15 +28,6 @@
 		<None Include="readme.md" Pack="true" PackagePath="." />
 	</ItemGroup>
 
-  <ItemGroup>
-    <Content Update="Pages\Auth\SignIn.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </Content>
-    <Content Update="Pages\Auth\SignUp.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </Content>
-  </ItemGroup>
-
 
 
 </Project>
