@@ -1,0 +1,56 @@
+﻿<MudPaper Outlined="true">
+    <MudToolBar Class="@(Searched == true ? "d-none" : null)">
+        @* <MudGrid>
+            <MudGrid  Spacing="1" Justify="Justify.Center">
+            </MudGrid>
+            <MudGrid Spacing="1" Justify="Justify.Center">
+                
+            </MudGrid>
+        </MudGrid> *@
+
+        <MudIconButton Icon="@Icons.Material.Filled.Menu">
+        </MudIconButton>
+        <MudSpacer/>
+        <MudIconButton @onclick="() => OnPageChange.InvokeAsync(CurrentPage - 1)" class="@(!(CurrentPage > 1) ? "disabled" : "")" Icon="@Icons.Material.Filled.ArrowBack"
+                       Disabled="@(CurrentPage == 1 ? true : false)">
+        </MudIconButton>
+        <MudButton Disabled="true" Typo="Typo.caption" Align="Align.Center">
+            Page @CurrentPage / @TotalPages
+        </MudButton>
+        <MudIconButton @onclick="() => OnPageChange.InvokeAsync(CurrentPage + 1)" class="@(!(CurrentPage < TotalPages) ? "disabled" : "")" Icon="@Icons.Material.Filled.ArrowForward"
+                       Disabled="@(CurrentPage == TotalPages ? true : false)">
+        </MudIconButton>
+        <MudSpacer />
+        <MudIconButton @onclick="() => OpenSearch.InvokeAsync()" Icon="@Icons.Material.Filled.Search">
+        </MudIconButton>
+    </MudToolBar>
+    <MudToolBar Class="@(Searched == false ? "d-none" : null)">
+        <MudText Align="Align.Center" Typo="Typo.caption">@(NumberOfSearchResults) results for the keyword <strong>@SearchText</strong></MudText>
+        <MudIconButton @onclick="() => CloseSearch.InvokeAsync()" Icon="@Icons.Material.Filled.Cancel">
+        </MudIconButton>
+    </MudToolBar>
+  </MudPaper>
+
+@code {
+    [Parameter]
+    public int CurrentPage { get; set; }
+
+    [Parameter]
+    public int TotalPages { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnPageChange { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OpenSearch { get; set; }
+
+    //If the user has searched for something, the toolbar will show the search text
+    [Parameter]
+    public bool Searched { get; set; } = false;
+    [Parameter]
+    public string SearchText { get; set; } = "";
+    [Parameter]
+    public string NumberOfSearchResults { get; set; } = "";
+    [Parameter]
+    public EventCallback<string> CloseSearch { get; set; }
+}

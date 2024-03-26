@@ -1,0 +1,48 @@
+﻿<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Search" Class="mr-3 mb-n1"/>
+            Search using Keyword
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudTextField @bind-Text="Keyword" T="string" OnKeyPress="@OnKeyPressEnter" Label="Search keywords" Variant="Variant.Filled" Margin="Margin.Dense"></MudTextField>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="@GoBackWithKeyword">Search</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public string Keyword { get; set; }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    void OnKeyPressEnter(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" || e.Key == "NumpadEnter")
+        {
+            GoBackWithKeyword();
+        }
+    }
+
+    private void GoBackWithKeyword()
+    {
+        if(string.IsNullOrWhiteSpace(Keyword))
+        {
+            MudDialog.Cancel();
+        }
+        else
+        {
+            MudDialog.Close(DialogResult.Ok(Keyword));
+        }
+    }
+}

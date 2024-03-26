@@ -1,4 +1,5 @@
 ﻿using MedbaseComponents.Models;
+using MedbaseComponents.MsalClient;
 using System.Net.Http.Json;
 
 namespace MedbaseComponents.Services
@@ -80,9 +81,38 @@ namespace MedbaseComponents.Services
         {
             return await httpClient.GetFromJsonAsync<Course>($"courses/{id}");
         }
-        public async Task<IEnumerable<Question>> GetAllQuestions()
+        public async Task<List<Question>> GetAllQuestions()
         {
-            return await httpClient.GetFromJsonAsync<IEnumerable<Question>>($"questions");
+            //if (GlobalValues.AccessToken == null)
+            //    return new();
+
+            //var result = new List<Question>();
+
+            //var message = new HttpRequestMessage(HttpMethod.Get, "questions");
+            //message.Headers.Add("Authorization", $"Bearer {GlobalValues.AccessToken}");
+
+            //var response = await httpClient.SendAsync(message);
+
+            //var responseContent = await response.Content.ReadAsStringAsync();
+
+            //var options = new System.Text.Json.JsonSerializerOptions
+            //{
+            //    PropertyNameCaseInsensitive = true
+            //};
+
+            //result = System.Text.Json.JsonSerializer.Deserialize<List<Question>>(responseContent, options);
+
+            //if (response.IsSuccessStatusCode)
+            //{
+            //    return result;
+            //}
+            //else
+            //{
+            //    Console.WriteLine($"Error getting questions: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
+            //    return result;
+            //}
+
+            return await httpClient.GetFromJsonAsync<List<Question>>("questions");
         }
 
         public async void PostArticle(Article article)
@@ -270,6 +300,11 @@ namespace MedbaseComponents.Services
         public async Task<List<NoteDto>> GetAllNotesAsync()
         {
             return await httpClient.GetFromJsonAsync<List<NoteDto>>("notes/getall");
+        }
+
+        public async Task<IEnumerable<Question>> GetQuestionsByKeyword(string keyword)
+        {
+            return await httpClient.GetFromJsonAsync<IEnumerable<Question>>($"questions/search/{keyword}");
         }
     }
 }

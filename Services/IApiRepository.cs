@@ -18,10 +18,11 @@ namespace MedbaseComponents.Services
         Task<QuestionPaged> GetSearchPagedQuestions(int topic, int page, double numResults, string keyword);
         Task<IEnumerable<Subscription>> GetSubscriptions();
         Task<Subscription> GetSubscription(string email);
-        Task<IEnumerable<Question>> GetAllQuestions();
+        Task<List<Question>> GetAllQuestions();
         Task<CourseArticlesDto> GetCourseArticlesDto();
         Task<IEnumerable<Question>> GetQuizQuestions(int topic, int number);
         Task<IEnumerable<Corrections>> GetCorrections();
+        Task<IEnumerable<Question>> GetQuestionsByKeyword(string keyword);
 
         void PostArticle(Article article);
         void PostTopic(Topic topic);

@@ -7,7 +7,7 @@
 	  <UseMauiEssentials>true</UseMauiEssentials>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
 	  <PackageId>MedbaseComponents</PackageId>
-	  <Version>1.0.1</Version>
+	  <Version>1.0.2</Version>
 	  <Author>Tanaka Mawere</Author>
 	  <Product>Medbase</Product>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -17,6 +17,8 @@
 	<ItemGroup>
 		<PackageReference Include="Markdig" Version="0.35.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.3" />
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Identity.Client" Version="4.59.0" />
 		<PackageReference Include="MudBlazor" Version="6.6.0" />
 		<PackageReference Include="MudBlazor.Markdown" Version="0.1.1" />
 	</ItemGroup>

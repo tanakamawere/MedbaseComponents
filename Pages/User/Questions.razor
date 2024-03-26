@@ -37,11 +37,10 @@
         <div style="display:@(searchResultsNull == true ? "none" : "block");">
             <LoadingComponent />
         </div>
-
-        <div style="display:@(searchResultsNull == true ? "block" : "none");">
-            Your search term did not bring back any results on this topic.
-            Try to search in another topic.
-        </div>
+    }
+    else if(QuestionPaged.Questions.Count().Equals(0))
+    {
+        <EmptyResults SearchWord="@searchTerm" />
     }
     else if(isLoading.Equals(false) && QuestionPaged.Questions.Count().Equals(0))
     {
@@ -49,24 +48,10 @@
     }
     else
     {
-        <div style="margin-bottom:75px;" class="me-3 position-fixed end-0 bottom-0 @(showToolbar.Equals(false) ? "d-none" : "d-block")">
-            <MudPaper Elevation="25" Outlined=true>
-                <MudToolBar>
-                    @*<MudIconButton Icon="@Icons.Material.Outlined.Search" />*@
-                    <MudGrid Spacing="1" Justify="Justify.Center">
-                        <MudIconButton @onclick="() => GetQuestions(QuestionPaged.CurrentPage -1)" class="@(!(QuestionPaged.CurrentPage > 1) ? "disabled" : "")" Icon="@Icons.Material.Filled.ArrowBack">
-                        </MudIconButton>
-                        <MudButton Disabled="true" Typo="Typo.caption" Align="Align.Center">
-                            Page @QuestionPaged.CurrentPage / @QuestionPaged.Pages
-                        </MudButton>
-                        <MudIconButton @onclick="() => GetQuestions(QuestionPaged.CurrentPage +1)"
-                                       class="@(!(QuestionPaged.CurrentPage < QuestionPaged.Pages) ? "disabled" : "")" Icon="@Icons.Material.Filled.ArrowForward">
-                        </MudIconButton>
-                    </MudGrid>
-                    @*<MudIconButton Icon="@Icons.Material.Outlined.Menu" OnClick="OpenToolbar" />*@
-                </MudToolBar>
-            </MudPaper>
+        <div class="floating-toolbar d-flex justify-content-center fixed-bottom mb-5">
+            <QuestionsToolbar @ref="questionsToolbar" CloseSearch="@CloseSearch" CurrentPage="@QuestionPaged.CurrentPage" TotalPages="@QuestionPaged.Pages" OnPageChange="@GetQuestions" OpenSearch="@OpenSearchDialog"/>
         </div>
+
         <div style="margin-bottom:75px;" class="m-2 position-fixed bottom-0 end-0 justify-content-center @(showToolbar.Equals(true) ? "d-none" : "d-block")">
             <MudFab Color="Color.Primary" 
                     StartIcon="@Icons.Material.Filled.More" 
@@ -142,7 +127,7 @@
                             <div>
                                 <MudText>e) @question.ChildE</MudText>
 
-                                <div style="display:@(Answers == 1 && qts == question.Id ? "block" : "none")">
+                                <div class="max-width-explanation-image" style="display:@(Answers == 1 && qts == question.Id ? "block" : "none")">
                                     <MudPaper Class="p-1" Outlined="true">
                                         <MudText>
                                             @question.AnswerE.ToString()
@@ -172,10 +157,10 @@
     public bool searchBarOpen = false;
     public bool searchResultsNull = false;
     private bool isLoading;
-
     private bool showToolbar = true;
     private string searchTerm = "";
     public int qts;
+    private QuestionsToolbar questionsToolbar;
 
 
     private string description = "Questions on your chosen topic";
@@ -214,19 +199,8 @@
         QuestionPaged = await repository.GetPagedQuestions(topicRef, page, 10f);
         isLoading = false;
     }
-
-    private async Task GetSearchQuestions(int page = 1)
-    {
-        QuestionPaged = await repository.GetSearchPagedQuestions(topicRef, page, 30f, searchTerm);
-        if (QuestionPaged.Questions.ToList().Count() == 0)
-        {
-            searchResultsNull = true;
-        }
-    }
-
     private void OpenSearchBar() => searchBarOpen = !searchBarOpen;
     private void OpenToolbar() => showToolbar = !showToolbar;
-
     private void OpenDialog(int questionId)
     {
         var parameters = new DialogParameters<CorrectionsDialog>();
@@ -238,5 +212,53 @@
                 Position = DialogPosition.Center,
             };
         DialogService.Show<CorrectionsDialog>("Submit Answer Correction", parameters, options);
+    }
+
+    private async Task OpenSearchDialog()
+    {
+        var parameters = new DialogParameters<SearchQuestionsDialog>();
+        var options = new DialogOptions()
+        {
+            CloseButton = false,
+            MaxWidth = MaxWidth.ExtraExtraLarge,
+            Position = DialogPosition.Center,
+            FullWidth = true,
+            CloseOnEscapeKey = true,
+            NoHeader = true,
+            FullScreen = false,
+        };
+
+        try
+        {
+            var dialog = await DialogService.ShowAsync<SearchQuestionsDialog>("Search Questions", parameters, options);
+            var result = await dialog.Result;
+
+            if (!result.Cancelled)
+            {
+                searchTerm = result.Data.ToString();
+                isLoading = true;
+                QuestionPaged.Questions = await repository.GetQuestionsByKeyword(searchTerm);
+
+                //adjust toolbar appearance
+                questionsToolbar.Searched = true;
+                questionsToolbar.SearchText = searchTerm;
+                questionsToolbar.NumberOfSearchResults = QuestionPaged.Questions.Count().ToString();
+
+                if (QuestionPaged.Questions.ToList().Count() == 0)
+                {
+                    searchResultsNull = true;
+                }
+                isLoading = false;
+            }
+        }
+        catch (Exception)
+        {
+            // Do nothing
+        }
+    }
+
+    private async Task CloseSearch()
+    {
+        navManager.NavigateTo(navManager.Uri, true);
     }
 }

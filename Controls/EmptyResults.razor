@@ -1,0 +1,23 @@
+﻿@inject NavigationManager navManager
+<MudContainer Class="mt-5">
+    <MudGrid Justify="Justify.Center" Class="p-5">
+
+        <MudImage Src="img/empty_notes.svg" Style="max-width:300px" />
+
+        <MudText Align="Align.Center" Typo="Typo.h6">
+            Your search term "@SearchWord" didn't bring any results. 🥲
+            <br />
+            <br />
+            Change something in your search term and try again.
+        </MudText>
+
+        <MudSparkLine />
+        <MudLink Href="@navManager.Uri" Typo="Typo.h6">Let's try that again</MudLink>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    
+    [Parameter]
+    public string SearchWord { get; set; }
+}
