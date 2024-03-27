@@ -306,5 +306,15 @@ namespace MedbaseComponents.Services
         {
             return await httpClient.GetFromJsonAsync<IEnumerable<Question>>($"questions/search/{keyword}");
         }
+
+        public async Task<QuestionPagedWithTopic> GetPagedQuestionsWithTopic(int topic, int page, double numResults)
+        {
+            return await httpClient.GetFromJsonAsync<QuestionPagedWithTopic>($"/questions/pagedwithtopic/{topic}/{numResults}/{page}");
+        }
+
+        public async Task<QuestionsWithTopicDto> GetQuestionsWithTopic(int topic)
+        {
+            return await httpClient.GetFromJsonAsync<QuestionsWithTopicDto>($"questions/withtopic/{topic}");
+        }
     }
 }

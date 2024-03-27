@@ -26,6 +26,8 @@
     <meta name="twitter:title" content="@title" />
     <meta name="twitter:description" content="@description" />
     <meta name="twitter:image" content="@image" />
+
+    <!-- Custom MD Styles -->
 </HeadContent>
 
 <div class="container">
@@ -38,18 +40,18 @@
             <LoadingComponent />
         </div>
     }
-    else if(QuestionPaged.Questions.Count().Equals(0))
+    else if(QuestionPagedWithTopic.QuestionsWithTopic.Questions.Count().Equals(0))
     {
         <EmptyResults SearchWord="@searchTerm" />
     }
-    else if(isLoading.Equals(false) && QuestionPaged.Questions.Count().Equals(0))
+    else if(isLoading.Equals(false) && QuestionPagedWithTopic.QuestionsWithTopic.Questions.Count().Equals(0))
     {
         <UnderConstruction/>
     }
     else
     {
         <div class="floating-toolbar d-flex justify-content-center fixed-bottom mb-5">
-            <QuestionsToolbar @ref="questionsToolbar" CloseSearch="@CloseSearch" CurrentPage="@QuestionPaged.CurrentPage" TotalPages="@QuestionPaged.Pages" OnPageChange="@GetQuestions" OpenSearch="@OpenSearchDialog"/>
+            <QuestionsToolbar @ref="questionsToolbar" CloseSearch="@CloseSearch" CurrentPage="@QuestionPagedWithTopic.CurrentPage" TotalPages="@QuestionPagedWithTopic.Pages" OnPageChange="@GetQuestions" OpenSearch="@OpenSearchDialog"/>
         </div>
 
         <div style="margin-bottom:75px;" class="m-2 position-fixed bottom-0 end-0 justify-content-center @(showToolbar.Equals(true) ? "d-none" : "d-block")">
@@ -60,7 +62,7 @@
                     Class="object-left" />
         </div>
         <div class="col-lg-6 col-md-8 mx-auto fw-normal" style="margin-bottom:150px;">
-            <Virtualize Items="QuestionPaged.Questions.ToList()" Context="question" TItem="Question">
+            <Virtualize Items="QuestionPagedWithTopic.QuestionsWithTopic.Questions.ToList()" Context="question" TItem="Question">
                 <ItemContent>
                     <MudCard class="mb-2">
                         <MudCardHeader>
@@ -161,6 +163,9 @@
     private string searchTerm = "";
     public int qts;
     private QuestionsToolbar questionsToolbar;
+    //QuestionPaged QuestionPaged = new ();
+    QuestionPagedWithTopic QuestionPagedWithTopic = new();
+    private List<Question> QuestionsList { get; set; } = new();
 
 
     private string description = "Questions on your chosen topic";
@@ -172,13 +177,8 @@
         new BreadcrumbItem("Home", href: "#", icon: Icons.Material.Filled.Home),
         new BreadcrumbItem("Courses", href: "/courses", icon: Icons.Material.Filled.Book),
         new BreadcrumbItem("Topics", href: "/courses", icon: Icons.Material.Filled.LibraryBooks),
-        new BreadcrumbItem("Questions", href: "/courses", icon: Icons.Material.Filled.QuestionAnswer)
+        new BreadcrumbItem("Questions", href: "/courses", icon: Icons.Material.Filled.QuestionAnswer),
     };
-
-    QuestionPaged QuestionPaged = new ();
-
-    private List<Question> QuestionsList { get; set; } = new();
-
     protected override async Task OnParametersSetAsync()
     {
         await GetQuestions();
@@ -196,7 +196,9 @@
     private async Task GetQuestions(int page = 1)
     {
         isLoading = true;
-        QuestionPaged = await repository.GetPagedQuestions(topicRef, page, 10f);
+        QuestionPagedWithTopic = await repository.GetPagedQuestionsWithTopic(topicRef, page, 10f);
+
+        //QuestionPaged = await repository.GetPagedQuestions(topicRef, page, 10f);
         isLoading = false;
     }
     private void OpenSearchBar() => searchBarOpen = !searchBarOpen;
@@ -237,14 +239,14 @@
             {
                 searchTerm = result.Data.ToString();
                 isLoading = true;
-                QuestionPaged.Questions = await repository.GetQuestionsByKeyword(searchTerm);
+                QuestionPagedWithTopic.QuestionsWithTopic.Questions = await repository.GetQuestionsByKeyword(searchTerm);
 
                 //adjust toolbar appearance
                 questionsToolbar.Searched = true;
                 questionsToolbar.SearchText = searchTerm;
-                questionsToolbar.NumberOfSearchResults = QuestionPaged.Questions.Count().ToString();
+                questionsToolbar.NumberOfSearchResults = QuestionPagedWithTopic.QuestionsWithTopic.Questions.Count().ToString();
 
-                if (QuestionPaged.Questions.ToList().Count() == 0)
+                if (QuestionPagedWithTopic.QuestionsWithTopic.Questions.ToList().Count() == 0)
                 {
                     searchResultsNull = true;
                 }

@@ -48,5 +48,4 @@ namespace MedbaseComponents.Models
         [Required]
         public int TopicRef { get; set; }
     }
-
 }
