@@ -1,5 +1,8 @@
 ﻿@inherits LayoutComponentBase
 
+<MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" Theme="someTheme" />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
 <div>
     <main class="container p-2">
@@ -8,5 +11,34 @@
 </div>
 
 @code {
+    private MudThemeProvider _mudThemeProvider;
+    private bool _isDarkMode;
+    MudTheme someTheme = new()
+        {
+            Palette = new PaletteLight()
+            {
+                Primary = Colors.Blue.Darken2,
+                AppbarBackground = Colors.Blue.Accent1,
+            },
+            PaletteDark = new PaletteDark()
+            {
+                Primary = Colors.Blue.Lighten1
+            },
+        };
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isDarkMode = await _mudThemeProvider.GetSystemPreference();
+            await _mudThemeProvider.WatchSystemPreference(OnSystemPreferenceChanged);
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnSystemPreferenceChanged(bool newValue)
+    {
+        _isDarkMode = newValue;
+        StateHasChanged();
+    }
 }
