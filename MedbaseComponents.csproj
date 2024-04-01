@@ -17,17 +17,22 @@
 	<ItemGroup>
 		<PackageReference Include="Markdig" Version="0.35.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.3" />
-		<PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
-		<PackageReference Include="Microsoft.Identity.Client" Version="4.59.0" />
 		<PackageReference Include="MudBlazor" Version="6.6.0" />
 		<PackageReference Include="MudBlazor.Markdown" Version="0.1.1" />
 	</ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="wwwroot\" />
-  </ItemGroup>
 	<ItemGroup>
 		<None Include="readme.md" Pack="true" PackagePath="." />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\MedbaseLibrary\MedbaseLibrary.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Content Update="wwwroot\css\common.css">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Pages\Auth\" />
 	</ItemGroup>
 
 
