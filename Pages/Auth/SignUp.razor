@@ -1,0 +1,95 @@
+﻿@page "/signup"
+
+@layout AuthLayout
+@inject IAuthService authService
+@using System.ComponentModel.DataAnnotations
+@inject NavigationManager NavigationManager
+
+<PageTitle>Sign Up | Medbase</PageTitle>
+
+<div class="justify-content-center text-center col-lg-6 col-md-8 mx-auto">
+    <MudImage Src="img/medbase_transparent.png" Style="max-height:100px" />
+    <MudStack>
+        <EditForm Model="Input" OnValidSubmit="CreateUserAsync" FormName="register">
+            <DataAnnotationsValidator />
+            <h2>Create a new account.</h2>
+            <hr />
+            <ValidationSummary class="text-danger" role="alert" />
+            
+            <div>
+                <MudTextField @bind-Value="Input.Email"
+                              Label="Email Address"
+                              Variant="Variant.Outlined"/>
+                <ValidationMessage For="() => Input.Email" class="text-danger" />
+            </div>
+            <div>
+                <MudTextField type="password" 
+                        @bind-Value="Input.Password"
+                              Label="Password"
+                              Variant="Variant.Outlined"
+                              InputType="InputType.Password" />
+                <ValidationMessage For="() => Input.Password" class="text-danger" />
+            </div>
+            <div>
+                <MudTextField type="password" @bind-Value="Input.ConfirmPassword" 
+                            Label="Confirm Password"
+                            Variant="Variant.Outlined"
+                            InputType="InputType.Password" />
+                <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
+            </div>
+            <button type="submit" class="w-100 btn btn-lg btn-primary">Sign Up</button>
+        </EditForm>
+        <MudStack>
+            <p>
+                <a href="/signin">Already have an account? Sign in</a>
+            </p>
+        </MudStack>
+    </MudStack>
+</div>
+@code {
+    private string? userNamePreview;
+    private string? errorMessage;
+    private bool showPassword;
+    InputType PasswordInput = InputType.Password;
+    string PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    private AuthenticationRequest? User { get; set; } = new();
+
+    private async Task CreateUserAsync()
+    {
+        User.Email = Input.Email;
+        User.Password = Input.Password;
+        var result = await authService.SignUpAsync(User);
+
+        if (result.IsSuccess)
+        {
+            Console.WriteLine(result.Message);
+            //Sign in success
+        }
+        else
+        {
+            errorMessage = result.Message;
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        [EmailAddress]
+        [Display(Name = "Email")]
+        public string Email { get; set; } = "";
+
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [DataType(DataType.Password)]
+        [Display(Name = "Password")]
+        public string Password { get; set; } = "";
+
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm password")]
+        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        public string ConfirmPassword { get; set; } = "";
+    }
+}

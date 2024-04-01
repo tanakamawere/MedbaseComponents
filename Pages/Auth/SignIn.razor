@@ -1,0 +1,103 @@
+﻿@page "/signin"
+
+@layout AuthLayout
+@inject IAuthService authService
+@using System.ComponentModel.DataAnnotations
+@inject NavigationManager NavigationManager
+@inject ILocalStorage authStateHandler
+@using Microsoft.AspNetCore.Authorization
+@inject IAuthMemory authMemory
+
+<PageTitle>Sign In | Medbase</PageTitle>
+
+<div class="justify-content-center text-center col-lg-6 col-md-8 mx-auto">
+    <MudImage Src="img/medbase_transparent.png" Style="max-height:100px" />
+    <MudStack>
+            <EditForm Model="User" OnValidSubmit="LoginUser">
+                <DataAnnotationsValidator />
+                <h2>Use a local account to log in.</h2>
+                <hr />
+                <ValidationSummary class="text-danger" role="alert" />
+
+            <div>
+                <!-- Email Address -->
+                <MudTextField @bind-Value="User.Email"
+                              Label="Email Address"
+                              Variant="Variant.Outlined" />
+                <ValidationMessage For="() => User.Email" class="text-danger" />
+            </div>
+
+            <!-- Password -->
+
+            <div>
+                <MudTextField @bind-Value="User.Password"
+                              Label="Password"
+                              Variant="Variant.Outlined"
+                              InputType="@PasswordInput"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@PasswordInputIcon"
+                              OnAdornmentClick="@TogglePasswordVisibility"
+                              AdornmentAriaLabel="Show Password" />
+                <ValidationMessage For="() => User.Password" class="text-danger" />
+            </div>
+
+            <div>
+                <button type="submit" class="w-100 btn btn-lg btn-primary">Sign In</button>
+            </div>
+                <MudStack>
+                    <p>
+                        <a href="Account/ForgotPassword">Forgot your password?</a>
+                    </p>
+                    <p>
+                        <a href="/signup">Sign up as a new user</a>
+                    </p>
+                </MudStack>
+            </EditForm>
+        </MudStack>
+</div> 
+
+@code {
+    private string? errorMessage;
+    private bool showPassword;
+    InputType PasswordInput = InputType.Password;
+    string PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
+
+    private AuthenticationRequest? User { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+    }
+
+    public async Task LoginUser()
+    {
+        var result = await authService.SignInAsync(User);
+        if (result.IsSuccess)
+        {
+            AuthenticationResponse response = result.Data as AuthenticationResponse;
+            //await authStateHandler.SetObjectAsync("auth", response.Token);
+            authMemory.StoreToken("testing", response.Token);
+            Console.WriteLine(response.Token);
+            NavigationManager.NavigateTo("/home");
+        }
+        else
+        {
+            errorMessage = result.Message;
+        }
+    }
+
+    void TogglePasswordVisibility()
+    {
+        if (showPassword)
+        {
+            showPassword = false;
+            PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
+            PasswordInput = InputType.Password;
+        }
+        else
+        {
+            showPassword = true;
+            PasswordInputIcon = Icons.Material.Filled.Visibility;
+            PasswordInput = InputType.Text;
+        }
+    }
+}

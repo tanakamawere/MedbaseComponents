@@ -31,9 +31,6 @@
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </Content>
 	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="Pages\Auth\" />
-	</ItemGroup>
 
 
 
