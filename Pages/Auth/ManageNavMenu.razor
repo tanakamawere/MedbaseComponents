@@ -1,22 +1,12 @@
-﻿
+﻿<MudPaper Width="250px" Elevation="0">
+    <MudText Typo="Typo.h6" Class="px-4">Your Profile</MudText>
+    <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Options</MudText>
+    <MudNavMenu Rounded="true" Margin="Margin.Normal" Color="Color.Tertiary" Class="pa-2">
+        <MudNavLink Match="NavLinkMatch.Prefix" Href="/profile" Icon="@Icons.Material.Filled.Dashboard">Profile</MudNavLink>
+        <MudNavLink Match="NavLinkMatch.Prefix" Href="/changepassword" Icon="@Icons.Material.Filled.Password">Change Password</MudNavLink>
+    </MudNavMenu>
+</MudPaper>
 
-<ul class="nav nav-pills flex-column">
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage" Match="NavLinkMatch.All">Profile</NavLink>
-    </li>
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/Email">Email</NavLink>
-    </li>
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/ChangePassword">Password</NavLink>
-    </li>
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/TwoFactorAuthentication">Two-factor authentication</NavLink>
-    </li>
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/PersonalData">Personal data</NavLink>
-    </li>
-</ul>
 
 @code {
 

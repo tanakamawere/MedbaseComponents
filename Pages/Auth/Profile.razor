@@ -1,6 +1,141 @@
 ﻿@page "/profile" 
 @layout ManageLayout
 
+@using MedbaseComponents.Controls
+@using MedbaseComponents.Shared
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using System.ComponentModel.DataAnnotations
+@inject AuthenticationStateProvider authState
+@inject IAuthService authService
+@inject NavigationManager navigationManager
+@inject ISnackbar Snackbar
+
+<MudPaper Class="p-3" Elevation="1">
+    <div class="d-grid gap-2 d-md-flex justify-content-md-start mb-4 mb-lg-3">
+        <MudAvatar Src="/avatar.png" Size="Size.Large" />
+        <div>
+            <MudText Typo="Typo.h5" Class="fw-bolder">@userDetails.FirstName</MudText>
+            <MudText Typo="Typo.subtitle1">@userDetails.Username</MudText>
+        </div>
+    </div>
+
+    <div class="d-grid gap-2 d-md-flex justify-content-md-start mb-4 mb-lg-3">
+        <MudButton Variant="Variant.Outlined" OnClick="EditProfileToggle" StartIcon="@Icons.Material.Filled.Edit" Color="Color.Primary">Edit Profile</MudButton>
+        <MudButton Variant="Variant.Filled" Href="/about" StartIcon="@Icons.Material.Filled.Share" Color="Color.Primary">Share Profile</MudButton>
+    </div>
+
+    @if (isLoading)
+    {
+        <LoadingComponent />
+    }
+    else
+    {
+        <div class="@(editProfile ? "d-block" : "d-none")">
+            <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" role="alert" />
+                <div class="form-floating mb-3">
+                    <InputText @bind-Value="Input.FirstName" class="form-control" placeholder="First Name" />
+                    <label for="firstname" class="form-label">First Name</label>
+                    <ValidationMessage For="() => Input.FirstName" class="text-danger" />
+                </div>
+                <div class="form-floating mb-3">
+                    <InputText @bind-Value="Input.LastName" class="form-control" placeholder="last Name" />
+                    <label for="lastname" class="form-label">Last Name</label>
+                    <ValidationMessage For="() => Input.LastName" class="text-danger" />
+                </div>
+                <div class="form-floating mb-3">
+                    <InputText @bind-Value="Input.UserName" class="form-control" placeholder="Please choose your username." />
+                    <label for="username" class="form-label">Username</label>
+                    <ValidationMessage For="() => Input.UserName" class="text-danger" />
+                </div>
+                <div class="form-floating mb-3">
+                    <InputText @bind-Value="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number." />
+                    <label for="phone-number" class="form-label">Phone number</label>
+                    <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
+                </div>
+                <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
+            </EditForm>
+        </div>
+    }
+</MudPaper>
+
+
 @code {
 
+    private AuthenticationState authenticationState;
+    private bool editProfile = false;
+    private bool isLoading = false;
+    private Snackbar snackbar;
+    private UserDetails userDetails;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        authenticationState = await authState.GetAuthenticationStateAsync();
+        await GetUserInfoAsync(authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
+    }
+
+    private async Task GetUserInfoAsync(string userId)
+    {
+        userDetails = await authService.GetUserInfoAsync(userId);
+    }
+
+    //open edit profile component when button is pressed
+    private void EditProfileToggle()
+    {
+        editProfile = !editProfile;
+
+        if (editProfile)
+        {
+            Input.UserName = userDetails.Username;
+            Input.PhoneNumber = userDetails.PhoneNumber;
+            Input.FirstName = userDetails.FirstName;
+            Input.LastName = userDetails.LastName;
+        }
+    }
+
+
+    private async Task OnValidSubmitAsync()
+    {
+        isLoading = true;
+        UserDetails userDetails = new UserDetails
+        {
+            Username = Input.UserName,
+            PhoneNumber = Input.PhoneNumber,
+            FirstName = Input.FirstName,
+            LastName = Input.LastName,
+            Email = authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email).Value
+        };
+
+        var response = await authService.UpdateUserDetails(userDetails);
+        if (response.IsSuccess)
+        {
+            snackbar = Snackbar.Add(response.Message + "They will be applied next time you login", Severity.Success);
+            editProfile = false;
+            navigationManager.NavigateTo("/profile", true);
+        }
+        else
+        {
+            snackbar = Snackbar.Add($"Profile update failed: {response.Message}", Severity.Error);
+        }
+        isLoading = false;
+    }
+
+    private sealed class InputModel
+    {
+        [Phone]
+        [Display(Name = "Phone number")]
+        public string? PhoneNumber { get; set; }
+        
+        [Display(Name = "Username")]
+        public string? UserName { get; set; }
+        [Display(Name = "First Name")]
+        public string? FirstName { get; set; }
+        [Display(Name = "Last Name")]
+        public string? LastName { get; set; }
+    }
 }
