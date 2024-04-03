@@ -1,0 +1,16 @@
+﻿<MudPaper Style="max-width:600px" Class="p-4">
+    @if (!string.Equals(WhoSent, "user"))
+    {
+        <MudAvatar Color="Color.Primary">@WhoSent.ToUpperInvariant()</MudAvatar>
+    }
+    <p class="">
+        @Message
+    </p>
+</MudPaper>
+
+@code {
+    [Parameter]
+    public string Message { get; set; } = "";
+    [Parameter]
+    public string WhoSent { get; set; } = "";
+}

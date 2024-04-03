@@ -1,0 +1,137 @@
+﻿@page "/chat"
+
+@inject IChatEndpoints aiService
+
+@using MedbaseComponents.Controls
+@using MedbaseLibrary.Models.AIModels
+@using System.Net.Http.Json
+
+<!-- This page is intended for conversational Q&A. -->
+
+<PageTitle>Chat | Medbase</PageTitle>
+
+<MudGrid Justify="Justify.Center" Class="m-4">
+    <MudItem id="answers" xs="12" Class="overflow-x-auto">
+        @if (messages.Count() == 0 && _isReceivingResponse == false)
+        {
+            <div class="d-flex align-content-center flex-wrap flex-grow-1 full-height">
+                <ChatExamples Message="Medbase AI" OnExampleClicked="@SendMessage" />
+            </div>
+        }
+        else if (_isReceivingResponse == true)
+        {
+            <LoadingComponent />
+        }
+        else if (messages.Count() > 0 && _isReceivingResponse == false)
+        {
+            <MudStack Reverse="false" Spacing="12">
+                @foreach (var message in messages)
+                {
+                    <ChatMessage Message="@message.content" WhoSent="@message.role"/>
+                }
+            </MudStack>
+        }
+    </MudItem>
+</MudGrid>
+<MudGrid Class="bottom">
+    <MudItem xs="12" lg="10">
+        <MudTextField @bind-Value="@input" Label="Text"
+                      Variant="Variant.Outlined"
+                      AdornmentColor="Color.Secondary" AutoFocus="true"
+                      Placeholder="Enter OpenAI Search Prompt" Lines="3"
+                      IconSize="Size.Large"
+                      Disabled=@_isReceivingResponse
+                      HelperText="Use Shift + Enter for new lines" Immediate="true"
+                      OnKeyUp="@OnKeyUpAsync" Clearable="true"
+                      Counter="1_000" MaxLength="1_000" />
+    </MudItem>
+    <MudItem xs="0" lg="2" Class="d-flex align-self-center">
+        <MudGrid Justify="Justify.Center">
+            <MudItem xs="9" Class="pa-2">
+                <MudFab Color="Color.Secondary" Size="Size.Large"
+                        StartIcon=@Icons.Material.Filled.Send Class="full-width"
+                        Label="Chat" aria-label="Ask question button."
+                        OnClick="@SendMessage" />
+            </MudItem>
+            <MudItem xs="3" Class="pa-2">
+                <MudTooltip Arrow="true" Text="Clear chat history" Placement="Placement.Top">
+                    <MudFab Color="Color.Primary" Size="Size.Medium"
+                            StartIcon=@Icons.Material.Filled.DeleteForever
+                            aria-label="Clear chat."
+                            OnClick="@OnClearChat" Disabled=@(_isReceivingResponse || _questionAndAnswerMap is { Count: 0 }) />
+                </MudTooltip>
+            </MudItem>
+        </MudGrid>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+    private string input;
+    private List<Message> messages = [];
+    private ElementReference scrollContainer;
+    private bool _isReceivingResponse = false;
+    private readonly Dictionary<string, Completion?> _questionAndAnswerMap = [];
+
+    protected override Task OnInitializedAsync()
+    {
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnKeyUpAsync(KeyboardEventArgs args)
+    {
+        if (args is { Key: "Enter", ShiftKey: false })
+        {
+            await SendMessage();
+        }
+    }
+
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return;
+
+
+        _isReceivingResponse = true;
+        StateHasChanged();
+        try
+        {
+            messages.Add(new Message { role = "user", content = input });
+            var response = await aiService.ChatCompletionPost(messages, false);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Read the response content as a string
+                Completion? completion = await response.Content.ReadFromJsonAsync<Completion>();
+
+                Message choice = completion.Choices[0].Message;
+
+                // Now you can work with the response content (e.g., parse JSON, extract data)
+                Console.WriteLine($"Response content:\n{choice.content}");
+
+                // Add assistant's message to the conversation history
+                messages.Add(new Message { role = "assistant", content = choice.content });
+            }
+            else
+            {
+                Console.WriteLine($"Error: {response.StatusCode} - {response.ReasonPhrase}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            _isReceivingResponse = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OnClearChat()
+    {
+        messages.Clear();
+        _questionAndAnswerMap.Clear();
+        StateHasChanged();
+    }
+}

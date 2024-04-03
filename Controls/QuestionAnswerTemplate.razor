@@ -1,0 +1,29 @@
+﻿@using Markdig
+<MudPaper Outlined="true" Class="p-1">
+    <MudGrid>
+        <MudItem xs="9">
+            <MudText>
+                @Answer.ToString()
+            </MudText>
+            <MudText Class="@(string.IsNullOrWhiteSpace(Explanation) ? "d-none" : "d-block")">
+                @((MarkupString)Markdown.ToHtml(Explanation == null ? " " : Explanation))
+            </MudText>
+        </MudItem>
+        <MudItem xs="1">
+            <MudIconButton OnClick="@(() => AskMedbaseClicked.InvokeAsync())" Icon="@Icons.Material.Filled.AutoAwesome">Ask AI</MudIconButton>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+@code {
+    [Parameter]
+    public string QuestionMain { get; set; } = "";
+    [Parameter]
+    public string Child { get; set; } = "";
+    [Parameter]
+    public bool Answer { get; set; }
+    [Parameter]
+    public string Explanation { get; set; } = "";
+    [Parameter]
+    public EventCallback<string> AskMedbaseClicked { get; set; }
+}

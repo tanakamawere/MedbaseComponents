@@ -81,84 +81,44 @@
                             <div>
                                 <MudText>a) @question.ChildA</MudText>
                                 <div style="display:@(Answers == 1 && qts == question.Id ? "block" : "none")">
-                                    <MudPaper Outlined="true" Class="p-1">
-                                        <MudGrid>
-                                            <MudItem xs="9">
-                                                <MudText>
-                                                    @question.AnswerA.ToString()
-                                                </MudText>
-                                                <MudText Class="@(string.IsNullOrWhiteSpace(question.ExplanationA) ? "d-none" : "d-block")">
-                                                    @((MarkupString)Markdown.ToHtml(question.ExplanationA == null ? " " : question.ExplanationA))
-                                                </MudText>
-                                            </MudItem>
-                                            <MudItem xs="1">
-                                                <MudIconButton OnClick="@(() => AskAIQuestion(question.QuestionMain, question.ChildA, question.AnswerA))" Icon="@Icons.Material.Filled.Air">Ask AI</MudIconButton>
-                                            </MudItem>
-                                        </MudGrid>
-                                    </MudPaper>
+                                    <QuestionAnswerTemplate QuestionMain="@question.QuestionMain" 
+                                        Child="@question.ChildA" 
+                                        Answer="@question.AnswerA" 
+                                        Explanation="@question.ExplanationA"
+                                                            AskMedbaseClicked="@(() => AskAIQuestion(question.QuestionMain, question.ChildA, question.AnswerA))" />
                                 </div>
                             </div>
                             <!--Child2-->
                             <div>
                                 <MudText>b) @question.ChildB</MudText>
                                 <div style="display:@(Answers == 1 && qts == question.Id ? "block" : "none")">
-                                    <MudPaper Outlined="true" Class="p-1">
-                                        <MudGrid>
-                                            <MudItem xs="9">
-                                                <MudText>
-                                                    @question.AnswerB.ToString()
-                                                </MudText>
-                                                <MudText Class="@(string.IsNullOrWhiteSpace(question.ExplanationB) ? "d-none" : "d-block")">
-                                                    @((MarkupString)Markdown.ToHtml(question.ExplanationB == null ? " " : question.ExplanationB))
-                                                </MudText>
-                                            </MudItem>
-                                            <MudItem xs="1">
-                                                <MudIconButton OnClick="@(() => AskAIQuestion(question.QuestionMain, question.ChildB, question.AnswerB))" Icon="@Icons.Material.Filled.Air">Ask AI</MudIconButton>
-                                            </MudItem>
-                                        </MudGrid>
-                                    </MudPaper>
+                                    <QuestionAnswerTemplate QuestionMain="@question.QuestionMain" 
+                                            Child="@question.ChildB" 
+                                            Answer="@question.AnswerB" 
+                                            Explanation="@question.ExplanationB"
+                                                            AskMedbaseClicked="@(() => AskAIQuestion(question.QuestionMain, question.ChildB, question.AnswerB))" />
                                 </div>
                             </div>
                             <!--Child3-->
                             <div>
                                 <MudText>c) @question.ChildC</MudText>
                                 <div style="display:@(Answers == 1 && qts == question.Id ? "block" : "none")">
-                                    <MudPaper Outlined="true" Class="p-1">
-                                        <MudGrid>
-                                            <MudItem xs="9">
-                                                <MudText>
-                                                    @question.AnswerC.ToString()
-                                                </MudText>
-                                                <MudText Class="@(string.IsNullOrWhiteSpace(question.ExplanationC) ? "d-none" : "d-block")">
-                                                    @((MarkupString)Markdown.ToHtml(question.ExplanationC == null ? " " : question.ExplanationC))
-                                                </MudText>
-                                            </MudItem>
-                                            <MudItem xs="1">
-                                                <MudIconButton OnClick="@(() => AskAIQuestion(question.QuestionMain, question.ChildC, question.AnswerC))" Icon="@Icons.Material.Filled.Air">Ask AI</MudIconButton>
-                                            </MudItem>
-                                        </MudGrid>
-                                    </MudPaper>
+                                        <QuestionAnswerTemplate QuestionMain="@question.QuestionMain" 
+                                                Child="@question.ChildC" 
+                                                Answer="@question.AnswerC" 
+                                                Explanation="@question.ExplanationC"
+                                                            AskMedbaseClicked="@(() => AskAIQuestion(question.QuestionMain, question.ChildC, question.AnswerC))" />
                                 </div>
                             </div>
                             <!--Child4-->
                             <div>
                                 <MudText>d) @question.ChildD</MudText>
                                 <div style="display:@(Answers == 1 && qts == question.Id ? "block" : "none")">
-                                    <MudPaper Outlined="true" Class="p-1">
-                                        <MudGrid>
-                                            <MudItem xs="9">
-                                                <MudText>
-                                                    @question.AnswerD.ToString()
-                                                </MudText>
-                                                <MudText Class="@(string.IsNullOrWhiteSpace(question.ExplanationD) ? "d-none" : "d-block")">
-                                                    @((MarkupString)Markdown.ToHtml(question.ExplanationD == null ? " " : question.ExplanationD))
-                                                </MudText>
-                                            </MudItem>
-                                            <MudItem xs="1">
-                                                <MudIconButton OnClick="@(() => AskAIQuestion(question.QuestionMain, question.ChildD, question.AnswerD))" Icon="@Icons.Material.Filled.Air">Ask AI</MudIconButton>
-                                            </MudItem>
-                                        </MudGrid>
-                                    </MudPaper>
+                                        <QuestionAnswerTemplate QuestionMain="@question.QuestionMain" 
+                                            Child="@question.ChildD" 
+                                            Answer="@question.AnswerD" 
+                                            Explanation="@question.ExplanationD"
+                                                            AskMedbaseClicked="@(() => AskAIQuestion(question.QuestionMain, question.ChildD, question.AnswerD))" />
                                 </div>
                             </div>
                             <!--Child5-->
@@ -166,21 +126,11 @@
                                 <MudText>e) @question.ChildE</MudText>
 
                                 <div class="max-width-explanation-image" style="display:@(Answers == 1 && qts == question.Id ? "block" : "none")">
-                                    <MudPaper Outlined="true" Class="p-1">
-                                        <MudGrid>
-                                            <MudItem xs="9">
-                                                <MudText>
-                                                    @question.AnswerE.ToString()
-                                                </MudText>
-                                                <MudText Class="@(string.IsNullOrWhiteSpace(question.ExplanationE) ? "d-none" : "d-block")">
-                                                    @((MarkupString)Markdown.ToHtml(question.ExplanationE == null ? " " : question.ExplanationE))
-                                                </MudText>
-                                            </MudItem>
-                                            <MudItem xs="1">
-                                                <MudIconButton OnClick="@(() => AskAIQuestion(question.QuestionMain, question.ChildE, question.AnswerE))" Icon="@Icons.Material.Filled.Air">Ask AI</MudIconButton>
-                                            </MudItem>
-                                        </MudGrid>
-                                    </MudPaper>
+                                    <QuestionAnswerTemplate QuestionMain="@question.QuestionMain" 
+                                        Child="@question.ChildE" 
+                                        Answer="@question.AnswerE" 
+                                        Explanation="@question.ExplanationE"
+                                                            AskMedbaseClicked="@(() => AskAIQuestion(question.QuestionMain, question.ChildE, question.AnswerE))" />
                                 </div>
                             </div>
                         </MudCardContent>
