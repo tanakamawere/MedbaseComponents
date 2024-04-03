@@ -32,7 +32,6 @@
                                     <MudAvatar Color="Color.Primary">TM</MudAvatar>
                                 </MudItem>
                                 <MudItem>
-                                    <MudText>@authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value</MudText>
                                     <MudText Class="my-auto">@authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName).Value @authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname).Value</MudText>
                                 </MudItem>
                             </MudGrid>

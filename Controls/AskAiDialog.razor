@@ -1,0 +1,110 @@
+﻿@using MedbaseLibrary.Models.AIModels
+@using System.Net.Http.Json
+@inject IChatEndpoints aiService
+
+<MudDialog>
+    <DialogContent>
+        <div class="text-center">
+            <MudTextField T="string"
+                          @bind-Text="question"
+                          Variant="Variant.Text"
+                          Label="Edit your question"
+                          Lines="5" />
+        </div>
+
+        <MudPaper Class="m-2 p-5">
+            @if (isLoading)
+            {
+                <LoadingComponent/>
+            }
+            else
+            {
+                @if (string.IsNullOrWhiteSpace(aiAnswer))
+                {
+                    <MudText>Your answer will appear here</MudText>
+                }
+                else
+                {
+                    <MudText Class="text-wrap" Typo="Typo.body1">@aiAnswer</MudText>
+                    <MudSpacer />
+                    <MudSpacer />
+                    <MudText Typo="Typo.body2">AI generated answers aren't always correct.</MudText>
+                }
+            }
+        </MudPaper>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Send">Ask</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter]
+    public string questionMain { get; set; } = "";
+    [Parameter]
+    public string child { get; set; } = "";
+    [Parameter]
+    public bool answer { get; set; }
+    public string aiAnswer { get; set; } = "";
+    private string question = "";
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        WithAnswerToggle();
+    }
+
+    async void Send()
+    {
+        try
+        {
+            isLoading = true;
+            var response = await aiService.CompletionPost(question, false);
+            if (response.IsSuccessStatusCode)
+            {
+
+                // Read the response content as a string
+                Completion? completion = await response.Content.ReadFromJsonAsync<Completion>();
+
+                Message choice = completion.Choices[0].Message;
+                Console.WriteLine(choice.content);
+                // Now you can work with the response content (e.g., parse JSON, extract data)
+                aiAnswer = choice.content;
+
+                // Add assistant's message to the conversation history
+                //messages.Add(new Message { role = "assistant", content = choice.content });
+            }
+            else
+            {
+                aiAnswer = "Something went wrong... Check your internet connection or Medbase AI is down";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void WithAnswerToggle()
+    {
+        question = "";
+        question = $"Why is it {answer.ToString().ToLower()} that {questionMain.ToLower()}, {child.ToLower()}";
+        StateHasChanged();
+    }
+
+    private void WithoutAnswerToggle()
+    {
+        question = "";
+        question = $"True or false: {questionMain.ToLower()}, {child.ToLower()}";
+        StateHasChanged();
+    }
+
+    void Close() => MudDialog.Close();
+}
