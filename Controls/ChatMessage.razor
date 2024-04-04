@@ -1,16 +1,37 @@
-﻿<MudPaper Style="max-width:600px" Class="p-4">
-    @if (!string.Equals(WhoSent, "user"))
-    {
-        <MudAvatar Color="Color.Primary">@WhoSent.ToUpperInvariant()</MudAvatar>
-    }
-    <p class="">
-        @Message
-    </p>
-</MudPaper>
+﻿@using Markdig
+<div class="rounded shadow p-3 @(WhoSent == "user" ? "message user" : "message bot")" style="max-width:500px">
+    <MudText Class="m-1">
+        @((MarkupString)Markdown.ToHtml(Message))
+    </MudText>
+    <div class="@(WhoSent == "user" ? "message user" : "message bot")">
+        <MudIcon Icon="@icons" />
+        @whoSent
+    </div>
+</div>
+
 
 @code {
     [Parameter]
     public string Message { get; set; } = "";
     [Parameter]
     public string WhoSent { get; set; } = "";
+
+    string icons = "";
+    string whoSent = "";
+
+    protected override Task OnParametersSetAsync()
+    {
+        if (WhoSent == "user")
+        {
+            icons = Icons.Material.Filled.Person;
+            whoSent = "You";
+        }
+        else
+        {
+            icons = Icons.Material.Filled.AutoAwesome;
+            whoSent = "Medbase AI";
+        }
+
+        return base.OnParametersSetAsync();
+    }
 }

@@ -1,0 +1,13 @@
+.message {
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+    .message.user { /* Styling for your messages */
+        align-self: flex-end;
+    }
+
+    .message.bot { /* Styling for replies */
+        align-self: flex-start;
+    }

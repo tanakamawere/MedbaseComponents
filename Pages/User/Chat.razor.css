@@ -1,0 +1,20 @@
+.chat-window {
+    height: calc(100vh - 200px);
+    padding: 10px;
+}
+
+.message {
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+    .message.user { /* Styling for your messages */
+        background-color: #e5e5e5;
+        align-self: flex-end;
+    }
+
+    .message.bot { /* Styling for replies */
+        background-color: #fff;
+        align-self: flex-start;
+    }
