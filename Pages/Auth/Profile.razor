@@ -15,14 +15,16 @@
     <div class="d-grid gap-2 d-md-flex justify-content-md-start mb-4 mb-lg-3">
         <MudAvatar Src="/avatar.png" Size="Size.Large" />
         <div>
-            <MudText Typo="Typo.h5" Class="fw-bolder">@userDetails.FirstName</MudText>
+            <MudText Typo="Typo.h5" Class="fw-bolder">@userDetails.FirstName @userDetails.LastName</MudText>
             <MudText Typo="Typo.subtitle1">@userDetails.Username</MudText>
         </div>
     </div>
 
     <div class="d-grid gap-2 d-md-flex justify-content-md-start mb-4 mb-lg-3">
         <MudButton Variant="Variant.Outlined" OnClick="EditProfileToggle" StartIcon="@Icons.Material.Filled.Edit" Color="Color.Primary">Edit Profile</MudButton>
-        <MudButton Variant="Variant.Filled" Href="/about" StartIcon="@Icons.Material.Filled.Share" Color="Color.Primary">Share Profile</MudButton>
+        @* <MudButton Variant="Variant.Filled" Href="/about" StartIcon="@Icons.Material.Filled.Share" Color="Color.Primary">
+            Share Profile
+        </MudButton> *@
     </div>
 
     @if (isLoading)
@@ -68,13 +70,14 @@
     private bool editProfile = false;
     private bool isLoading = false;
     private Snackbar snackbar;
-    private UserDetails userDetails;
+    private UserDetails? userDetails;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
+        userDetails = new();
         authenticationState = await authState.GetAuthenticationStateAsync();
         await GetUserInfoAsync(authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
     }

@@ -25,14 +25,10 @@
                 <Authorized>
                     <MudMenu>
                         <ActivatorContent>
-                            <MudGrid Spacing="2" Justify="Justify.Center" Class="m-1">
-                                <MudItem>
-                                    <MudAvatar Color="Color.Primary">TM</MudAvatar>
-                                </MudItem>
-                                <MudItem>
-                                    <MudText Class="my-auto">@authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName).Value @authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname).Value</MudText>
-                                </MudItem>
-                            </MudGrid>
+                            <div class="d-flex justify-content-center align-items-center p-2">
+                                <MudAvatar>TM</MudAvatar>
+                                <MudText Class="my-auto ms-3">@authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName).Value @authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname).Value</MudText>
+                            </div>
                         </ActivatorContent>
                         <ChildContent>
                             <MudMenuItem Href="/profile" Icon="@Icons.Material.Filled.Person">
@@ -48,14 +44,10 @@
                 <NotAuthorized>
                     <MudMenu>
                         <ActivatorContent>
-                            <MudGrid Spacing="2" Justify="Justify.Center" Class="m-1">
-                                <MudItem>
-                                    <MudAvatar Color="Color.Primary">GU</MudAvatar>
-                                </MudItem>
-                                <MudItem>
-                                    <MudText Class="my-auto">Guest User</MudText>
-                                </MudItem>
-                            </MudGrid>
+                            <div class="d-flex justify-content-center align-items-center p-2">
+                                <MudAvatar>GU</MudAvatar>
+                                <MudText Class="my-auto ms-3">Guest User</MudText>
+                            </div>
                         </ActivatorContent>
                         <ChildContent>
                             <MudMenuItem OnClick="ThemeToggle" Icon="@(_isDarkMode == true ? Icons.Material.Filled.DarkMode : Icons.Material.Filled.LightMode)">
