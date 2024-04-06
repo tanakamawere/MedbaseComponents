@@ -1,8 +1,6 @@
 ﻿@using Markdig
 <div class="rounded shadow p-3 @(WhoSent == "user" ? "message user" : "message bot")" style="max-width:500px">
-    <MudText Class="m-1">
-        @((MarkupString)Markdown.ToHtml(Message))
-    </MudText>
+    @((MarkupString)Markdown.ToHtml(Message))
     <div class="@(WhoSent == "user" ? "message user" : "message bot")">
         <MudIcon Icon="@icons" />
         @whoSent

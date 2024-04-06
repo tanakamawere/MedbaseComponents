@@ -1,0 +1,79 @@
+﻿@page "/pricing"
+@inject IApiRepository apiRepository
+@using MedbaseComponents.Controls
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject AuthenticationStateProvider authState
+@inject NavigationManager NavigationManager
+
+<div class="container">
+
+    <header>
+        <div class="container my-5">
+            <div class="row p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-3 border shadow-lg">
+                <div class="col-lg-7 p-3 p-lg-5 pt-lg-3">
+                    <MudText Typo="Typo.h2" class="display-5 fw-bolder mb-2">
+                        Pricing💵
+                    </MudText>
+                    <MudText class="fw-normal mb-4">
+                        Support the development of Medbase and get more features.
+                    </MudText>
+                </div>
+                <div class="col-lg-4 offset-lg-1 m-5">
+                    <img class="img-fluid bg-transparent" src="img/courses.png">
+                </div>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="row row-cols-1 row-cols-md-3 mb-3 text-center">
+            <!--Foreach loop here-->
+            @foreach (var sub in Subscriptions)
+            {
+                <PricingItem Id="@sub.Id"
+                             Name="@sub.Name"
+                             Price="@sub.Price"
+                             Description="@sub.Description"
+                             OnSubscribeClicked="@OnSubscribeClicked" />
+            }
+        </div>
+    </main>
+</div>
+
+@code {
+    private AuthenticationState authenticationState;
+    private IEnumerable<Subscription> Subscriptions { get; set; } = Enumerable.Empty<Subscription>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        authenticationState = await authState.GetAuthenticationStateAsync();
+        Subscriptions = await apiRepository.GetSubscriptionsAsync();
+    }
+
+    private async Task OnSubscribeClicked(int id)
+    {
+        //switch statement here
+        switch (id)
+        {
+            case 1:
+                if (authenticationState.User.Identity.IsAuthenticated)
+                {
+                    //Navigate to home
+                    NavigationManager.NavigateTo("/");
+                }
+                else
+                {
+                    NavigationManager.NavigateTo("/signin");
+                }
+                break;
+            case 2:
+                //Navigate to local payments
+                NavigationManager.NavigateTo("/payments/zw");
+                break;
+            case 3:
+                //Navigate to international payments
+                NavigationManager.NavigateTo("/payments/int");
+                break;
+        }
+    }
+}

@@ -1,43 +1,81 @@
-﻿@using MedbaseLibrary.Models.AIModels
+﻿@using MedbaseLibrary.Helpers
+@using MedbaseLibrary.Models.AIModels
 @using System.Net.Http.Json
 @inject IChatEndpoints aiService
+@inject IApiRepository apiRepository
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject AuthenticationStateProvider authState
+@using Markdig
+@using static MedbaseLibrary.Helpers.Helpers
 
-<MudDialog>
-    <DialogContent>
-        <div class="text-center">
-            <MudTextField T="string"
-                          @bind-Text="question"
-                          Variant="Variant.Text"
-                          Label="Edit your question"
-                          Lines="5" />
-        </div>
+<AuthorizeView>
+    <Authorized>
+            <MudDialog Style="max-width:800px;" Class="m-2">
+            <DialogContent>
+                <!--Get Medbase Premium banner-->
+                <MudText Typo="Typo.body1" Class="@(limitIsReached ? "d-block" : "d-none")">
+                    Get Medbase Premium, pretty please
+                </MudText>
 
-        <MudPaper Class="m-2 p-5">
-            @if (isLoading)
-            {
-                <LoadingComponent/>
-            }
-            else
-            {
-                @if (string.IsNullOrWhiteSpace(aiAnswer))
-                {
-                    <MudText>Your answer will appear here</MudText>
-                }
-                else
-                {
-                    <MudText Class="text-wrap" Typo="Typo.body1">@aiAnswer</MudText>
-                    <MudSpacer />
-                    <MudSpacer />
-                    <MudText Typo="Typo.body2">AI generated answers aren't always correct.</MudText>
-                }
-            }
-        </MudPaper>
-    </DialogContent>
-    <DialogActions>
-        <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Send">Ask</MudButton>
-    </DialogActions>
-</MudDialog>
+                <!--Content if user can still use AI-->
+                <div class="@(limitIsReached ? "d-none" : "d-block")">
+                    <div class="text-center">
+                        <MudTextField T="string"
+                                      @ref="textField"
+                                      @bind-Text="question"
+                                      Variant="Variant.Outlined"
+                                      Label="Edit your question"
+                                      Lines="5" />
+                        <MudProgressLinear Color="Color.Primary" 
+                            Rounded="true" 
+                            Class="my-3"
+                            Size="Size.Small" 
+                            Value="(usageCount / Helpers.MaxFreeAIUsage) * 100" />
+                    </div>
+                    <MudPaper Class="shadow border">
+                        <div class="m-2 p-5">
+                            @if (isLoading)
+                            {
+                                <SkeletonLoadingComponent />
+                            }
+                            else
+                            {
+                                @if (string.IsNullOrWhiteSpace(aiAnswer))
+                                {
+                                    <MudText>Your answer will appear here</MudText>
+                                }
+                                else
+                                {
+                                    <MudText Class="m-1">
+                                        @((MarkupString)Markdown.ToHtml(aiAnswer))
+                                    </MudText>
+                                    <div>
+                                        <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" />
+                                        Medbase AI
+                                    </div>
+                                    <MudSpacer />
+                                    <MudSpacer />
+                                    <MudText Typo="Typo.body2">AI generated answers aren't always correct.</MudText>
+                                }
+                            }
+                        </div>
+                    </MudPaper>
+                    <MudText>
+                        @usageIndicator
+                    </MudText>
+                 </div>   
+                </DialogContent>
+                <DialogActions>
+                    <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
+                    <MudButton Color="Color.Primary" OnClick="ValidateAIUsage">Ask</MudButton>
+                </DialogActions>
+            </MudDialog>
+    </Authorized>
+    <NotAuthorized>
+        <SignInInfoPage />
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
@@ -50,10 +88,52 @@
     public string aiAnswer { get; set; } = "";
     private string question = "";
     private bool isLoading = false;
+    private bool isSubscribed = false;
+    private bool limitIsReached = false;
+    private int usageCount = 0;
+    private SubscriptionStatus subscriptionStatus;
+    private MudTextField<string> textField;
+    private AuthenticationState authenticationState;
+    private string usageIndicator = "";
 
     protected override async Task OnInitializedAsync()
     {
+        authenticationState = await authState.GetAuthenticationStateAsync();
         WithAnswerToggle();
+    }
+
+    private async Task ValidateAIUsage()
+    {
+        if (!string.IsNullOrWhiteSpace(question))
+        {
+            isLoading = true;
+            isSubscribed = bool.Parse(authenticationState.User.Claims.FirstOrDefault(c => c.Type == CustomClaimTypes.SubscriptionActive).Value);
+
+            subscriptionStatus = await Helpers.CheckForSubscriptionStatus(apiRepository, isSubscribed, authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
+
+            if (subscriptionStatus.Equals(SubscriptionStatus.LimitReached))
+            {
+                //Limit has been reached
+                subscriptionStatus = SubscriptionStatus.LimitReached;
+                limitIsReached = true;
+                StateHasChanged();
+            }
+            else if (subscriptionStatus.Equals(SubscriptionStatus.PremiumUser))
+            {
+                subscriptionStatus = SubscriptionStatus.PremiumUser;
+                Send();
+            }
+            else
+            {
+                subscriptionStatus = SubscriptionStatus.FreeUser;
+                Send();
+            }
+        }
+        else
+        {
+            textField.Error = true;
+            textField.ErrorText = "Please enter a message";
+        }
     }
 
     async void Send()
@@ -72,13 +152,10 @@
                 Console.WriteLine(choice.content);
                 // Now you can work with the response content (e.g., parse JSON, extract data)
                 aiAnswer = choice.content;
-
-                // Add assistant's message to the conversation history
-                //messages.Add(new Message { role = "assistant", content = choice.content });
             }
             else
             {
-                aiAnswer = "Something went wrong... Check your internet connection or Medbase AI is down";
+                aiAnswer = "Something went wrong... Check your internet connection";
             }
         }
         catch (Exception ex)
@@ -88,7 +165,29 @@
         finally
         {
             isLoading = false;
+            await UpdateAICredits();
             StateHasChanged();
+        }
+    }
+
+    private async Task UpdateAICredits()
+    {
+        //Check if subscription status is premium
+        switch (subscriptionStatus)
+        {
+            case SubscriptionStatus.PremiumUser:
+                usageIndicator = subscriptionStatus.ToString();
+                break;
+            case SubscriptionStatus.LimitReached:
+                usageIndicator = subscriptionStatus.ToString();
+                break;
+            case SubscriptionStatus.FreeUser:
+                usageCount = await apiRepository.GetUserUsageCount(authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
+                usageIndicator = $"{usageCount} / {Helpers.MaxFreeAIUsage} free daily AI credits left";
+                break;
+            default:
+                usageIndicator = "";
+                break;
         }
     }
 

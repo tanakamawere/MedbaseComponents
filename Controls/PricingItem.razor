@@ -1,0 +1,31 @@
+﻿<div class="col">
+    <MudCard class="mb-4 rounded-3">
+        <MudCardHeader>
+            <h2 class="my-0 fw-bolder">@Name</h2>
+        </MudCardHeader>
+        <MudCardContent>
+            <h3 class="pricing-card-title">$@Price<small>/mo</small></h3>
+            @((MarkupString)Description)
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton OnClick="() => OnSubscribeClicked.InvokeAsync(Id)" 
+                Class="w-100" 
+                Color="Color.Primary"
+                Variant="Variant.Filled">   
+            Get @Name
+            </MudButton>
+        </MudCardActions>
+    </MudCard>
+</div>
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    [Parameter]
+    public string Name { get; set; }
+    [Parameter]
+    public decimal Price { get; set; }
+    [Parameter]
+    public string Description { get; set; }
+    [Parameter]
+    public EventCallback<int> OnSubscribeClicked { get; set; }
+}
