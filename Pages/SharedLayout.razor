@@ -5,6 +5,8 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 @inject AuthenticationStateProvider authState
+@inject NavigationManager navManager
+@inject IAuthMemory _authMemory
 
 <PageTitle>Medbase | Medical School MCQs</PageTitle>
 
@@ -37,7 +39,9 @@
                             <MudMenuItem OnClick="ThemeToggle" Icon="@(_isDarkMode == true ? Icons.Material.Filled.DarkMode : Icons.Material.Filled.LightMode)">
                                 @(_isDarkMode == true ? "Dark Mode On" : "Dark Mode Off")
                             </MudMenuItem>
-                            <MudMenuItem Icon="@Icons.Material.Filled.Logout">Sign Out</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Filled.Logout" OnClick="SignOut">
+                                Sign Out
+                            </MudMenuItem>
                         </ChildContent>
                     </MudMenu>
                 </Authorized>
@@ -70,7 +74,14 @@
             <MudNavLink Href="/articles" Icon="@Icons.Material.Filled.Newspaper">Articles</MudNavLink>
             @* <MudNavLink Href="/Gamma" Icon="@Icons.Material.Filled.Download">Gamma</MudNavLink> *@
             <MudNavLink Href="/about" Icon="@Icons.Material.Filled.QuestionAnswer">About & Contact</MudNavLink>
-
+            <AuthorizeView Roles="administrator, manager, contributor">
+                <MudNavLink Href="/admin" Icon="@Icons.Material.Filled.AdminPanelSettings">Medbase Admin</MudNavLink>
+            </AuthorizeView>
+            <AuthorizeView>
+                <NotAuthorized>
+                    <MudNavLink Href="/signin" Icon="@Icons.Material.Filled.Login">Sign In</MudNavLink>
+                </NotAuthorized>
+            </AuthorizeView>
         </MudNavMenu>
     </MudDrawer>
     <MudMainContent>
@@ -105,6 +116,14 @@
     protected override async Task OnInitializedAsync()
     {
         authenticationState = await authState.GetAuthenticationStateAsync();
+    }
+
+    //Sign out method
+    private async Task SignOut()
+    {
+        string userId = authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName).Value;
+        _authMemory.RemoveToken("testing");
+        navManager.NavigateTo("/", true);
     }
 
     bool _drawerOpen = true;
