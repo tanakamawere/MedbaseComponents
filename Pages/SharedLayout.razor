@@ -1,4 +1,5 @@
-﻿@using MedbaseLibrary.MsalClient
+﻿@using MedbaseLibrary.Helpers
+@using MedbaseLibrary.MsalClient
 @using Microsoft.Identity.Client
 @using Microsoft.Extensions.Configuration
 @inherits LayoutComponentBase
@@ -122,7 +123,7 @@
     private async Task SignOut()
     {
         string userId = authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName).Value;
-        _authMemory.RemoveToken("testing");
+        _authMemory.RemoveToken(Helpers.AuthMemory);
         navManager.NavigateTo("/", true);
     }
 

@@ -105,16 +105,16 @@
     private async Task OnValidSubmitAsync()
     {
         isLoading = true;
-        UserDetails userDetails = new UserDetails
+        UserDto userDto = new UserDto
         {
-            Username = Input.UserName,
+            UserName = Input.UserName,
             PhoneNumber = Input.PhoneNumber,
             FirstName = Input.FirstName,
             LastName = Input.LastName,
             Email = authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email).Value
         };
 
-        var response = await authService.UpdateUserDetails(userDetails);
+        var response = await authService.UpdateUserDetails(userDto);
         if (response.IsSuccess)
         {
             snackbar = Snackbar.Add(response.Message + "They will be applied next time you login", Severity.Success);

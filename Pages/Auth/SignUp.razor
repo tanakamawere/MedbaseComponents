@@ -4,12 +4,17 @@
 @inject IAuthService authService
 @using System.ComponentModel.DataAnnotations
 @inject NavigationManager NavigationManager
+@using MedbaseComponents.Controls
 
 <PageTitle>Sign Up | Medbase</PageTitle>
 
-<div class="justify-content-center text-center col-lg-6 col-md-8 mx-auto">
+<div class="w-100 m-auto" style="max-width:350px;padding:1rem;">
     <MudImage Src="img/medbase_transparent.png" Style="max-height:100px" />
-    <MudStack>
+    <MudStack Spacing="5">
+
+        <div class="@(isBusy ? "d-block" : "d-none")">
+            <SkeletonLoadingComponent />
+        </div>
         <EditForm Model="Input" OnValidSubmit="CreateUserAsync" FormName="register">
             <DataAnnotationsValidator />
             <h2>Create a new account.</h2>
@@ -37,7 +42,7 @@
                             InputType="InputType.Password" />
                 <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Sign Up</button>
+            <SubmitButton IsBusy="isBusy" Title="Sign Up"/>
         </EditForm>
         <MudStack>
             <p>
@@ -54,23 +59,39 @@
     string PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
+    private bool isBusy = false;
 
     private AuthenticationRequest? User { get; set; } = new();
 
     private async Task CreateUserAsync()
     {
-        User.Email = Input.Email;
-        User.Password = Input.Password;
-        var result = await authService.SignUpAsync(User);
+        isBusy = true;
+        try
+        {
+            User.Email = Input.Email;
+            User.Password = Input.Password;
 
-        if (result.IsSuccess)
-        {
-            Console.WriteLine(result.Message);
-            //Sign in success
+            //Brings back user id that has been created to navigate to next page
+            var result = await authService.SignUpAsync(User);
+
+            if (result.IsSuccess)
+            {
+                Console.WriteLine(result.Data);
+                //Sign in success. Go to details page and update accordingly
+                NavigationManager.NavigateTo($"/signupdetails/{result.Data}");
+            }
+            else
+            {
+                errorMessage = result.Message;
+            }
         }
-        else
+        catch (Exception ex)
         {
-            errorMessage = result.Message;
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isBusy = false;
         }
     }
 

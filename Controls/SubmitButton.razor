@@ -1,0 +1,12 @@
+﻿<MudButton Class="m1-4" ButtonType="ButtonType.Submit" Variant="Variant.Filled"
+            FullWidth="true"
+           Color="Color.Primary" Disabled="IsBusy">
+    @Title
+</MudButton>
+@code {
+    [Parameter]
+    public bool IsBusy { get; set; }
+
+    [Parameter]
+    public string Title { get; set; } = "Done";
+}

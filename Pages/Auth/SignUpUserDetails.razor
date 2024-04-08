@@ -1,0 +1,98 @@
+﻿@page "/signupdetails/{userId}"
+
+@layout AuthLayout
+@inject IAuthService authService
+@using System.ComponentModel.DataAnnotations
+@using MedbaseLibrary.Helpers
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject IAuthMemory authMemory
+@using MedbaseComponents.Controls
+
+<PageTitle>Details | Medbase</PageTitle>
+
+<div class="w-100 m-auto" style="max-width:350px;padding:1rem;">
+    <MudImage Src="img/medbase_transparent.png" Style="max-height:100px" />
+    <MudStack>
+        <div class="@(isBusy ? "d-block" : "d-none")">
+            <SkeletonLoadingComponent />
+        </div>
+        <EditForm Model="user" OnValidSubmit="AddDetails" class="@(isBusy ? "d-none" : "d-block")">
+            <DataAnnotationsValidator />
+            <h2>Details | Medbase</h2>
+            <p>
+                We promise this is the last page. Just a few more details...
+            </p>
+            <hr />
+            <ValidationSummary class="text-danger" role="alert" />
+            
+            <div>
+                <MudTextField @bind-Value="user.FirstName"
+                              Label="First Name"
+                              Variant="Variant.Outlined" />
+                <ValidationMessage For="() => user.FirstName" class="text-danger" />
+            </div>
+            <div>
+                <MudTextField @bind-Value="user.LastName"
+                              Label="Last Name"
+                              Variant="Variant.Outlined" />
+                <ValidationMessage For="() => user.LastName" class="text-danger" />
+            </div>
+            <div>
+                <MudTextField @bind-Value="user.UserName"
+                              Label="Username"
+                              Variant="Variant.Outlined"/>
+                <ValidationMessage For="() => user.UserName" class="text-danger" />
+            </div>
+            <div>
+                <MudTextField @bind-Value="user.PhoneNumber"
+                              Label="Phone Number"
+                              InputType="InputType.Telephone"
+                              Variant="Variant.Outlined"/>
+                <ValidationMessage For="() => user.PhoneNumber" class="text-danger" />
+            </div>
+            <SubmitButton IsBusy="isBusy" Title="Done"/>
+        </EditForm>
+    </MudStack>
+</div>
+
+@code {
+    [Parameter]
+    public string userId { get; set; } = "";
+    public UserDto user { get; set; } = new UserDto();
+    private Snackbar snackbar;
+    private bool isBusy = false;
+
+    private async Task AddDetails()
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+            return;
+
+        isBusy = true;
+        try
+        {
+            user.UserId = userId;
+            var response = await authService.PostSignUpUserDetailsAsync(user);
+            Console.WriteLine(response.Message);
+            if (response.IsSuccess)
+            {
+                AuthenticationResponse authResponse = response.Data as AuthenticationResponse;
+                authMemory.StoreToken(Helpers.AuthMemory, authResponse.Token);
+                Console.WriteLine(authResponse.Token);
+                NavigationManager.NavigateTo("/home", true);
+            }
+            else
+            {
+                snackbar = Snackbar.Add(response.Message, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+}

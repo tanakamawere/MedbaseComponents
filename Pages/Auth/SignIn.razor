@@ -5,15 +5,20 @@
 @using System.ComponentModel.DataAnnotations
 @inject NavigationManager NavigationManager
 @inject ILocalStorage authStateHandler
+@using MedbaseLibrary.Helpers
 @using Microsoft.AspNetCore.Authorization
 @inject IAuthMemory authMemory
+@using MedbaseComponents.Controls
 
 <PageTitle>Sign In | Medbase</PageTitle>
 
 <div class="w-100 m-auto" style="max-width:350px;padding:1rem;">
     <MudImage Src="img/medbase_transparent.png" Style="max-height:80px" />
     <MudStack>
-        <EditForm Model="User" OnValidSubmit="LoginUser">
+        <div class="@(isBusy ? "d-block" : "d-none")">
+            <SkeletonLoadingComponent />
+        </div>
+        <EditForm Model="User" OnValidSubmit="LoginUser" class="@(isBusy ? "d-none" : "d-block")">
             <DataAnnotationsValidator />
             <h4>Please sign in</h4>
             <hr />
@@ -41,9 +46,7 @@
                 <ValidationMessage For="() => User.Password" class="text-danger" />
             </div>
 
-            <div>
-                <button type="submit" class="w-100 mt-3 btn btn-lg btn-primary">Sign In</button>
-            </div>
+            <SubmitButton IsBusy="isBusy" Title="Sign In"/>
         </EditForm>
         <p>
             <a href="Account/ForgotPassword">Forgot your password?</a>
@@ -59,6 +62,7 @@
     private bool showPassword;
     InputType PasswordInput = InputType.Password;
     string PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
+    private bool isBusy = false;
 
     private AuthenticationRequest? User { get; set; } = new();
 
@@ -68,18 +72,30 @@
 
     public async Task LoginUser()
     {
-        var result = await authService.SignInAsync(User);
-        if (result.IsSuccess)
+        isBusy = true;
+        try
         {
-            AuthenticationResponse response = result.Data as AuthenticationResponse;
-            //await authStateHandler.SetObjectAsync("auth", response.Token);
-            authMemory.StoreToken("testing", response.Token);
-            Console.WriteLine(response.Token);
-            NavigationManager.NavigateTo("/home", true);
+            var result = await authService.SignInAsync(User);
+            if (result.IsSuccess)
+            {
+                AuthenticationResponse response = result.Data as AuthenticationResponse;
+                //await authStateHandler.SetObjectAsync("auth", response.Token);
+                authMemory.StoreToken(Helpers.AuthMemory, response.Token);
+                Console.WriteLine(response.Token);
+                NavigationManager.NavigateTo("/home", true);
+            }
+            else
+            {
+                errorMessage = result.Message;
+            }
         }
-        else
+        catch (Exception ex)
         {
-            errorMessage = result.Message;
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            isBusy = false;
         }
     }
 
