@@ -9,6 +9,7 @@
 @using Microsoft.AspNetCore.Authorization
 @inject IAuthMemory authMemory
 @using MedbaseComponents.Controls
+@inject ISnackbar Snackbar
 
 <PageTitle>Sign In | Medbase</PageTitle>
 
@@ -18,36 +19,45 @@
         <div class="@(isBusy ? "d-block" : "d-none")">
             <SkeletonLoadingComponent />
         </div>
-        <EditForm Model="User" OnValidSubmit="LoginUser" class="@(isBusy ? "d-none" : "d-block")">
-            <DataAnnotationsValidator />
-            <h4>Please sign in</h4>
-            <hr />
-            <ValidationSummary class="text-danger" role="alert" />
+        <div class="@(isBusy ? "d-none" : "d-block")">
+            <EditForm Model="User" OnValidSubmit="LoginUser"
+                @ref="editForm">
+                <DataAnnotationsValidator />
+                <h4>Please sign in</h4>
+                <hr />
+                <ValidationSummary class="text-danger" role="alert" />
 
-            <div>
-                <!-- Email Address -->
-                <MudTextField @bind-Value="User.Email"
-                              Label="Email Address"
-                              Variant="Variant.Outlined" />
-                <ValidationMessage For="() => User.Email" class="text-danger" />
-            </div>
+                <div>
+                    <!-- Email Address -->
+                    <MudTextField @bind-Value="User.Email"
+                                    @ref="emailField"
+                                    Error="@signInFailed"
+                                    ErrorText="@errorMessage"
+                                  Label="Email Address"
+                                  Variant="Variant.Outlined" />
+                    <ValidationMessage For="() => User.Email" class="text-danger" />
+                </div>
 
-            <!-- Password -->
+                <!-- Password -->
 
-            <div>
-                <MudTextField @bind-Value="User.Password"
-                              Label="Password"
-                              Variant="Variant.Outlined"
-                              InputType="@PasswordInput"
-                              Adornment="Adornment.End"
-                              AdornmentIcon="@PasswordInputIcon"
-                              OnAdornmentClick="@TogglePasswordVisibility"
-                              AdornmentAriaLabel="Show Password" />
-                <ValidationMessage For="() => User.Password" class="text-danger" />
-            </div>
+                <div>
+                    <MudTextField @bind-Value="User.Password"
+                                  Label="Password"
+                                  @ref="passwordField"
+                                  Error="@signInFailed"
+                                  ErrorText="@errorMessage"
+                                  Variant="Variant.Outlined"
+                                  InputType="@PasswordInput"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@PasswordInputIcon"
+                                  OnAdornmentClick="@TogglePasswordVisibility"
+                                  AdornmentAriaLabel="Show Password" />
+                    <ValidationMessage For="() => User.Password" class="text-danger" />
+                </div>
 
-            <SubmitButton IsBusy="isBusy" Title="Sign In"/>
-        </EditForm>
+                <SubmitButton IsBusy="isBusy" Title="Sign In" />
+            </EditForm>
+        </div>
         <p>
             <a href="Account/ForgotPassword">Forgot your password?</a>
         </p>
@@ -62,7 +72,12 @@
     private bool showPassword;
     InputType PasswordInput = InputType.Password;
     string PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
+    private MudTextField<string> passwordField;
+    private MudTextField<string> emailField;
+    private EditForm editForm;
     private bool isBusy = false;
+    private bool signInFailed = false;
+    private Snackbar snackbar;
 
     private AuthenticationRequest? User { get; set; } = new();
 
@@ -87,6 +102,8 @@
             else
             {
                 errorMessage = result.Message;
+                signInFailed = true;
+                snackbar = Snackbar.Add(result.Message, Severity.Info);
             }
         }
         catch (Exception ex)

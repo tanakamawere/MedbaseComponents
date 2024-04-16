@@ -17,42 +17,44 @@
         <div class="@(isBusy ? "d-block" : "d-none")">
             <SkeletonLoadingComponent />
         </div>
-        <EditForm Model="user" OnValidSubmit="AddDetails" class="@(isBusy ? "d-none" : "d-block")">
-            <DataAnnotationsValidator />
-            <h2>Details | Medbase</h2>
-            <p>
-                We promise this is the last page. Just a few more details...
-            </p>
-            <hr />
-            <ValidationSummary class="text-danger" role="alert" />
-            
-            <div>
-                <MudTextField @bind-Value="user.FirstName"
-                              Label="First Name"
-                              Variant="Variant.Outlined" />
-                <ValidationMessage For="() => user.FirstName" class="text-danger" />
-            </div>
-            <div>
-                <MudTextField @bind-Value="user.LastName"
-                              Label="Last Name"
-                              Variant="Variant.Outlined" />
-                <ValidationMessage For="() => user.LastName" class="text-danger" />
-            </div>
-            <div>
-                <MudTextField @bind-Value="user.UserName"
-                              Label="Username"
-                              Variant="Variant.Outlined"/>
-                <ValidationMessage For="() => user.UserName" class="text-danger" />
-            </div>
-            <div>
-                <MudTextField @bind-Value="user.PhoneNumber"
-                              Label="Phone Number"
-                              InputType="InputType.Telephone"
-                              Variant="Variant.Outlined"/>
-                <ValidationMessage For="() => user.PhoneNumber" class="text-danger" />
-            </div>
-            <SubmitButton IsBusy="isBusy" Title="Done"/>
-        </EditForm>
+        <div class="@(isBusy ? "d-none" : "d-block")">
+            <EditForm Model="user" OnValidSubmit="AddDetails">
+                <DataAnnotationsValidator />
+                <h2>Details | Medbase</h2>
+                <p>
+                    We promise this is the last page. Just a few more details...
+                </p>
+                <hr />
+                <ValidationSummary class="text-danger" role="alert" />
+
+                <div>
+                    <MudTextField @bind-Value="user.FirstName"
+                                  Label="First Name"
+                                  Variant="Variant.Outlined" />
+                    <ValidationMessage For="() => user.FirstName" class="text-danger" />
+                </div>
+                <div>
+                    <MudTextField @bind-Value="user.LastName"
+                                  Label="Last Name"
+                                  Variant="Variant.Outlined" />
+                    <ValidationMessage For="() => user.LastName" class="text-danger" />
+                </div>
+                <div>
+                    <MudTextField @bind-Value="user.UserName"
+                                  Label="Username"
+                                  Variant="Variant.Outlined" />
+                    <ValidationMessage For="() => user.UserName" class="text-danger" />
+                </div>
+                <div>
+                    <MudTextField @bind-Value="user.PhoneNumber"
+                                  Label="Phone Number"
+                                  InputType="InputType.Telephone"
+                                  Variant="Variant.Outlined" />
+                    <ValidationMessage For="() => user.PhoneNumber" class="text-danger" />
+                </div>
+                <SubmitButton IsBusy="isBusy" Title="Done" />
+            </EditForm>
+        </div>
     </MudStack>
 </div>
 
@@ -78,8 +80,16 @@
             {
                 AuthenticationResponse authResponse = response.Data as AuthenticationResponse;
                 authMemory.StoreToken(Helpers.AuthMemory, authResponse.Token);
-                Console.WriteLine(authResponse.Token);
-                NavigationManager.NavigateTo("/home", true);
+
+                //Auth token is the JWT token. I need to get user id from the token.
+
+                var userIdClaim = Helpers.GetUserIdFromToken(authResponse.Token.ToString());
+
+                Console.WriteLine(userIdClaim);
+
+
+
+                NavigationManager.NavigateTo($"/home/{userIdClaim}", true);
             }
             else
             {

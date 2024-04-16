@@ -5,6 +5,7 @@
 @using System.ComponentModel.DataAnnotations
 @inject NavigationManager NavigationManager
 @using MedbaseComponents.Controls
+@inject ISnackbar Snackbar
 
 <PageTitle>Sign Up | Medbase</PageTitle>
 
@@ -15,35 +16,43 @@
         <div class="@(isBusy ? "d-block" : "d-none")">
             <SkeletonLoadingComponent />
         </div>
-        <EditForm Model="Input" OnValidSubmit="CreateUserAsync" FormName="register">
-            <DataAnnotationsValidator />
-            <h2>Create a new account.</h2>
-            <hr />
-            <ValidationSummary class="text-danger" role="alert" />
-            
-            <div>
-                <MudTextField @bind-Value="Input.Email"
-                              Label="Email Address"
-                              Variant="Variant.Outlined"/>
-                <ValidationMessage For="() => Input.Email" class="text-danger" />
-            </div>
-            <div>
-                <MudTextField type="password" 
-                        @bind-Value="Input.Password"
-                              Label="Password"
-                              Variant="Variant.Outlined"
-                              InputType="InputType.Password" />
-                <ValidationMessage For="() => Input.Password" class="text-danger" />
-            </div>
-            <div>
-                <MudTextField type="password" @bind-Value="Input.ConfirmPassword" 
-                            Label="Confirm Password"
-                            Variant="Variant.Outlined"
-                            InputType="InputType.Password" />
-                <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
-            </div>
-            <SubmitButton IsBusy="isBusy" Title="Sign Up"/>
-        </EditForm>
+        <div class="@(isBusy ? "d-none" : "d-block")">
+            <EditForm Model="Input" OnValidSubmit="CreateUserAsync" FormName="register">
+                <DataAnnotationsValidator />
+                <h2>Create a new account.</h2>
+                <hr />
+                <ValidationSummary class="text-danger" role="alert" />
+
+                <div>
+                    <MudTextField @bind-Value="Input.Email"
+                                  Label="Email Address"
+                                  Error="@signUpFailed"
+                                  ErrorText="@errorMessage"
+                                  Variant="Variant.Outlined" />
+                    <ValidationMessage For="() => Input.Email" class="text-danger" />
+                </div>
+                <div>
+                    <MudTextField type="password"
+                                  @bind-Value="Input.Password"
+                                  Error="@signUpFailed"
+                                  ErrorText="@errorMessage"
+                                  Label="Password"
+                                  Variant="Variant.Outlined"
+                                  InputType="InputType.Password" />
+                    <ValidationMessage For="() => Input.Password" class="text-danger" />
+                </div>
+                <div>
+                    <MudTextField type="password" @bind-Value="Input.ConfirmPassword"
+                                  Label="Confirm Password"
+                                  Variant="Variant.Outlined"
+                                  Error="@signUpFailed"
+                                  ErrorText="@errorMessage"
+                                  InputType="InputType.Password" />
+                    <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
+                </div>
+                <SubmitButton IsBusy="isBusy" Title="Sign Up" />
+            </EditForm>
+        </div>
         <MudStack>
             <p>
                 <a href="/signin">Already have an account? Sign in</a>
@@ -54,12 +63,14 @@
 @code {
     private string? userNamePreview;
     private string? errorMessage;
+    private bool signUpFailed = false;
     private bool showPassword;
     InputType PasswordInput = InputType.Password;
     string PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
     private bool isBusy = false;
+    private Snackbar snackbar;
 
     private AuthenticationRequest? User { get; set; } = new();
 
@@ -78,11 +89,13 @@
             {
                 Console.WriteLine(result.Data);
                 //Sign in success. Go to details page and update accordingly
-                NavigationManager.NavigateTo($"/signupdetails/{result.Data}");
+                NavigationManager.NavigateTo($"/signupdetails/{result.Data.ToString()}");
             }
             else
             {
                 errorMessage = result.Message;
+                signUpFailed = true;
+                snackbar = Snackbar.Add(result.Message, Severity.Info);
             }
         }
         catch (Exception ex)
