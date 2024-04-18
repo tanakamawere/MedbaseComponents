@@ -2,6 +2,8 @@
 
 @inject IChatEndpoints aiService
 @inject IApiRepository apiRepository
+@using Azure
+@using Azure.AI.OpenAI.Assistants
 @using MedbaseComponents.Controls
 @using MedbaseLibrary.Helpers
 @using MedbaseLibrary.Models.AIModels
@@ -23,36 +25,52 @@
         <div class="container-fluid h-100 @(limitIsReached ? "d-none" : "d-block")">
             <div class="overflow-auto chat-window">
                 <MudGrid Justify="Justify.Center">
-                    @if (messages.Count() <= 1 && _isReceivingResponse == false)
+                    @if (AiChats.Count == 0 && _isReceivingResponse == false)
                     {
                         <div class="d-flex align-content-center justify-content-center flex-wrap flex-grow-1 full-height">
-                            <ChatExamples Message="Medbase AI" OnExampleClicked="@SendMessage" />
-                            <MudSwitch T="bool"
-                                       Class="align-self-center"
-                                       CheckedChanged="OnUseContextToggled"
-                                       @bind-Value="@usingContext"
-                                       Label="@switchLabel"
-                                       Color="@Color.Primary"
-                                       UnCheckedColor="Color.Secondary" />
+                            <ChatExamples Message="Medbase AI" OnExampleClicked="@SendOpenAiMessage" />
                         </div>
                     }
                     else if (_isReceivingResponse == true)
                     {
                         <div class="d-flex flex-column overflow-auto w-100 p-3">
-                            @foreach (var message in messages.Skip(1))
+                            @foreach (var item in AiChats)
                             {
-                                <ChatMessage Message="@message.content" WhoSent="@message.role" />
+                                foreach (var content in item.MessageContents)
+                                {
+                                    if (content is MessageTextContent textContent)
+                                    {
+                                        <ChatMessage Message="@textContent.Text" WhoSent="@item.Role.ToString()" />
+                                    }
+                                }
                             }
                             <SkeletonLoadingComponent />
                         </div>
                     }
-                    else if (messages.Count() > 1 && _isReceivingResponse == false)
+                    else if (AiChats.Count >= 1 && _isReceivingResponse == false)
                     {
                         <div class="d-flex flex-column overflow-auto w-100 p-3">
-                            @foreach (var message in messages.Skip(1))
+                            @foreach (var item in AiChats)
                             {
-                                <ChatMessage Message="@message.content" WhoSent="@message.role" />
+                                foreach (var content in item.MessageContents)
+                                {
+                                    if (content is MessageTextContent textContent)
+                                    {
+                                        <ChatMessage Message="@textContent.Text" WhoSent="@item.Role.ToString()" />
+                                    }
+                                }
                             }
+
+                            @* @foreach (var (role, contentItems) in messagesDict)
+                            {
+                                foreach (var content in contentItems)
+                                {
+                                    if (content is MessageTextContent textContent)
+                                    {
+                                        <ChatMessage Message="@textContent.Text" WhoSent="@role.ToString()" />
+                                    }
+                                }
+                            } *@
                         </div>
                     }
                 </MudGrid>
@@ -65,7 +83,7 @@
                     <MudTooltip Arrow="true" Text="Clear chat history" Placement="Placement.Top">
                         <MudIconButton Color="Color.Primary" Size="Size.Small"
                                        Icon=@Icons.Material.Filled.Refresh
-                                       OnClick="@OnClearChat" Disabled=@(_isReceivingResponse || messages is { Count: 1 }) />
+                                       OnClick="@OnClearChat" Disabled=@(_isReceivingResponse || AiChats.Count == 0) />
                     </MudTooltip>
                 </div>
                 <MudTextField @bind-Value="@input" Label="Text"
@@ -102,9 +120,6 @@
 
 @code {
     private string input;
-    private bool usingContext = false;
-    private string switchLabel = "Normal chat with Medbase AI";
-    private List<Message> messages = [];
     private MudTextField<string> textField;
     private string usageIndicator = "";
     private string userId = "";
@@ -115,11 +130,24 @@
     private bool isSubscribed;
     private SubscriptionStatus subscriptionStatus;
     private bool limitIsReached = false;
+    private string threadIdCache = "";
+    private string assistantId = "asst_nieOwRIDpnN3IGAyO0epHXN2";
+
+
+    //AI things
+    private Response<Assistant> assistant;
+    private AssistantsClient client;
+    private Response<AssistantThread> thread; 
+    private Response<PageableList<ThreadMessage>> messagesOpenAi;
+    private List<AiChat> AiChats = [];
 
     protected override async Task OnInitializedAsync()
     {
         authenticationState = await authState.GetAuthenticationStateAsync();
-        messages.Add(new Message { role = "user", content = Helpers.SystemPrompt });
+
+        client = new AssistantsClient("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");
+        assistant = await client.GetAssistantAsync(assistantId);
+        thread = await client.CreateThreadAsync();
     }
 
     private async Task OnKeyUpAsync(KeyboardEventArgs args)
@@ -170,12 +198,14 @@
             else if (subscriptionStatus.Equals(SubscriptionStatus.PremiumUser))
             {
                 subscriptionStatus = SubscriptionStatus.PremiumUser;
-                await SendMessage();
+                //await SendMessage();
+                await SendOpenAiMessage();
             }
             else
             {
                 subscriptionStatus = SubscriptionStatus.FreeUser;
-                await SendMessage();
+                //await SendMessage();
+                await SendOpenAiMessage();
             }
         }
         else
@@ -185,64 +215,35 @@
         }
     }
 
-    private async Task SendMessage()
+    private async Task SendOpenAiMessage()
     {
+        string? lastMessageId = null;
+
+        await client.CreateMessageAsync(thread.Value.Id, MessageRole.User, input);
+        threadIdCache = thread.Value.Id;
+        var run = await client.CreateRunAsync(thread.Value.Id, new CreateRunOptions(assistant.Value.Id));
+        Response<ThreadRun> runResponse;
+
         try
         {
-            messages.Add(new Message { role = "user", content = input });
+            do
+            {
+                runResponse = await client.GetRunAsync(thread.Value.Id, run.Value.Id);
+            } while (runResponse.Value.Status == RunStatus.Queued || runResponse.Value.Status == RunStatus.InProgress);
 
             textField.Clear();
-            HttpResponseMessage? response = new();
 
-            Console.WriteLine(JsonSerializer.Serialize(messages));
+            messagesOpenAi = await client.GetMessagesAsync(thread.Value.Id, order: ListSortOrder.Ascending, after: lastMessageId);
 
-            if (usingContext)
-                response = await aiService.ChatCompletionPost(messages, true);
-            else
-                response = await aiService.ChatCompletionPost(messages, false);
-
-            if (response.IsSuccessStatusCode)
+            //So that messages aren't duplicated, clear the list
+            AiChats.Clear();
+            foreach (var message in messagesOpenAi.Value.Data)
             {
-                if (usingContext == true)
+                AiChats.Add(new AiChat
                 {
-                    List<string> listOfSources = new();
-                    // Read the response content as a string
-                    Completion? completion = await response.Content.ReadFromJsonAsync<Completion>();
-
-                    Message choice = completion.Choices[0].Message;
-                    Source[] sources = completion.Choices[0].Sources;
-
-                    //foreach (Source item in sources)
-                    //{
-                    //    DocumentMetadata docMetadata = item.Document?.DocMetadata;
-                    //    listOfSources.Add($"{docMetadata.FileName} - {docMetadata.PageLabel}\n");
-                    //}
-
-                    // Now you can work with the response content (e.g., parse JSON, extract data)
-                    Console.WriteLine($"Response content:\n{choice.content} \n\n{listOfSources.ToString()}");
-
-                    //string finalReply = $"{choice.content} \n\n{listOfSources.ToString()}";
-
-                    // Add assistant's message to the conversation history
-                    messages.Add(new Message { role = "assistant", content = choice.content });
-                }
-                else
-                {
-                    // Read the response content as a string
-                    Completion? completion = await response.Content.ReadFromJsonAsync<Completion>();
-
-                    Message choice = completion.Choices[0].Message;
-
-                    // Now you can work with the response content (e.g., parse JSON, extract data)
-                    Console.WriteLine($"Response content:\n{choice.content}");
-
-                    // Add assistant's message to the conversation history
-                    messages.Add(new Message { role = "assistant", content = choice.content });
-                }
-            }
-            else
-            {
-                Console.WriteLine($"Error: {response.StatusCode} - {response.ReasonPhrase}");
+                    Role = message.Role,
+                    MessageContents = message.ContentItems
+                });
             }
         }
         catch (Exception ex)
@@ -259,16 +260,11 @@
         }
     }
 
-    private void OnClearChat()
+    private async void OnClearChat()
     {
-        messages.Clear();
+        AiChats.Clear();
+        await client.DeleteThreadAsync(threadIdCache);
         textField.Clear();
         StateHasChanged();
-    }
-
-    private void OnUseContextToggled()
-    {
-        usingContext = !usingContext;
-        switchLabel = usingContext ? "Chat using Medbase AI Context" : "Normal chat with Medbase AI";
     }
 }
