@@ -8,10 +8,18 @@
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
 	  <PackageId>MedbaseComponents</PackageId>
 	  <Version>1.0.2</Version>
+	  <Authors>Tanaka Mawere</Authors>
 	  <Author>Tanaka Mawere</Author>
+	  <PackageIcon>medbase_logo.png</PackageIcon>
+	  <Description>Shared view code for Medbase projects.</Description>
+	  <PackageIconUrl>https://i.postimg.cc/B6GRyvJY/medbase-logo.png</PackageIconUrl>
 	  <Product>Medbase</Product>
+	  <Copyright>Medbase Inc 2024</Copyright>
+	  <ProjectUrl>https://medbase.co.zw</ProjectUrl>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <PackageReadmeFile>readme.md</PackageReadmeFile>
+	  <RepositoryUrl>https://github.com/tanakamawere/medbasecomponents</RepositoryUrl>
+	  <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
 	<ItemGroup>
@@ -23,6 +31,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="readme.md" Pack="true" PackagePath="." />
+		<None Include="medbase_logo.png" Pack="true" PackagePath="." />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\MedbaseLibrary\MedbaseLibrary.csproj" />
