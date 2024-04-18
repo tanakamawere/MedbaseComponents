@@ -17,8 +17,6 @@ jobs:
       uses: actions/setup-dotnet@v1
     - name: Restore workloads
       run:  dotnet workload restore
-    - name: Add MedbaseLibrary Nuget Package
-      run: dotnet add package MedbaseLibrary
     - name: Build
       run: dotnet build -c Release
     - name: Test
