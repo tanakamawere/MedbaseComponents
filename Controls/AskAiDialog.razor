@@ -1,9 +1,8 @@
 ﻿@using Azure.AI.OpenAI
 @using MedbaseLibrary.Helpers
-@using MedbaseLibrary.Models.AIModels
 @using Azure
 @using System.Net.Http.Json
-@inject IChatEndpoints aiService
+
 @inject IApiRepository apiRepository
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
@@ -191,39 +190,39 @@
         }
     }
 
-    async void Send()
-    {
-        try
-        {
-            isLoading = true;
-            var response = await aiService.CompletionPost(question, false);
-            if (response.IsSuccessStatusCode)
-            {
+    // async void Send()
+    // {
+    //     try
+    //     {
+    //         isLoading = true;
+    //         var response = await aiService.CompletionPost(question, false);
+    //         if (response.IsSuccessStatusCode)
+    //         {
 
-                // Read the response content as a string
-                Completion? completion = await response.Content.ReadFromJsonAsync<Completion>();
+    //             // Read the response content as a string
+    //             Completion? completion = await response.Content.ReadFromJsonAsync<Completion>();
 
-                Message choice = completion.Choices[0].Message;
-                Console.WriteLine(choice.content);
-                // Now you can work with the response content (e.g., parse JSON, extract data)
-                aiAnswer = choice.content;
-            }
-            else
-            {
-                aiAnswer = "Something went wrong... Check your internet connection";
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex);
-        }
-        finally
-        {
-            isLoading = false;
-            await UpdateAICredits();
-            StateHasChanged();
-        }
-    }
+    //             Message choice = completion.Choices[0].Message;
+    //             Console.WriteLine(choice.content);
+    //             // Now you can work with the response content (e.g., parse JSON, extract data)
+    //             aiAnswer = choice.content;
+    //         }
+    //         else
+    //         {
+    //             aiAnswer = "Something went wrong... Check your internet connection";
+    //         }
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine(ex);
+    //     }
+    //     finally
+    //     {
+    //         isLoading = false;
+    //         await UpdateAICredits();
+    //         StateHasChanged();
+    //     }
+    // }
 
     private async Task UpdateAICredits()
     {

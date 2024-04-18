@@ -4,7 +4,6 @@
 @inject IAuthService authService
 @using System.ComponentModel.DataAnnotations
 @inject NavigationManager NavigationManager
-@inject ILocalStorage authStateHandler
 @using MedbaseLibrary.Helpers
 @using Microsoft.AspNetCore.Authorization
 @inject IAuthMemory authMemory
@@ -94,7 +93,6 @@
             if (result.IsSuccess)
             {
                 AuthenticationResponse response = result.Data as AuthenticationResponse;
-                //await authStateHandler.SetObjectAsync("auth", response.Token);
                 authMemory.StoreToken(Helpers.AuthMemory, response.Token);
                 Console.WriteLine(response.Token);
                 NavigationManager.NavigateTo("/home", true);
