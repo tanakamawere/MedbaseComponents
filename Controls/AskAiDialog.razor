@@ -104,7 +104,7 @@
     protected override async Task OnInitializedAsync()
     {
         authenticationState = await authState.GetAuthenticationStateAsync();
-        client = new OpenAIClient("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");
+        client = new OpenAIClient(Environment.GetEnvironmentVariable("OPENAI_API_KEY"));
 
         WithAnswerToggle();
     }

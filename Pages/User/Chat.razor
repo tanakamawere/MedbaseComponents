@@ -169,7 +169,7 @@
     {
         authenticationState = await authState.GetAuthenticationStateAsync();
 
-        client = new AssistantsClient("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");
+        client = new AssistantsClient(Environment.GetEnvironmentVariable("OPENAI_API_KEY"));
         assistant = await client.GetAssistantAsync(assistantId);
         thread = await client.CreateThreadAsync();
     }
