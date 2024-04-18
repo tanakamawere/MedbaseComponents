@@ -17,7 +17,26 @@
 
 <!-- This page is intended for conversational Q&A. -->
 
-<PageTitle>Chat | Medbase</PageTitle>
+<PageTitle>@title</PageTitle>
+<HeadContent>
+    <title>@title</title>
+    <meta name="title" content="@title" />
+    <meta name="description" content="@description" />
+
+    <!-- Open Graph / Facebook -->
+    <meta name="og:type" content="website" />
+    <meta name="og:url" content="@navManager.BaseUri" />
+    <meta name="og:title" content="@title" />
+    <meta name="og:description" content="@description" />
+    <meta name="og:image" content="@image" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="@navManager.BaseUri" />
+    <meta name="twitter:title" content="@title" />
+    <meta name="twitter:description" content="@description" />
+    <meta name="twitter:image" content="@image" />
+</HeadContent>
 
 <AuthorizeView>
     <Authorized>
@@ -118,6 +137,11 @@
 
 
 @code {
+    //SEO Stuff
+    private string description = "Medbase AI is trained on textbooks, lecture slides and MCQs from medical school. Give it a try.";
+    private string title = "AI | Medbase";
+    private string image = "https://i.postimg.cc/DyLX9tSM/medbase-ai.png";
+
     private string input;
     private MudTextField<string> textField;
     private string usageIndicator = "";
