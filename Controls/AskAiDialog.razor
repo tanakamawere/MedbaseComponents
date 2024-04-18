@@ -1,5 +1,7 @@
-﻿@using MedbaseLibrary.Helpers
+﻿@using Azure.AI.OpenAI
+@using MedbaseLibrary.Helpers
 @using MedbaseLibrary.Models.AIModels
+@using Azure
 @using System.Net.Http.Json
 @inject IChatEndpoints aiService
 @inject IApiRepository apiRepository
@@ -7,6 +9,7 @@
 @using System.Security.Claims
 @inject AuthenticationStateProvider authState
 @using Markdig
+@using System.Text
 @using static MedbaseLibrary.Helpers.Helpers
 
 <AuthorizeView>
@@ -23,6 +26,7 @@
                     <div class="text-center">
                         <MudTextField T="string"
                                       @ref="textField"
+                                      Disabled="@isLoading"
                                       @bind-Text="question"
                                       Variant="Variant.Outlined"
                                       Label="Edit your question"
@@ -47,9 +51,7 @@
                                 }
                                 else
                                 {
-                                    <MudText Class="m-1">
-                                        @((MarkupString)Markdown.ToHtml(aiAnswer))
-                                    </MudText>
+                                    <MudMarkdown Value="@aiAnswer" />
                                     <div>
                                         <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" />
                                         Medbase AI
@@ -68,7 +70,9 @@
                 </DialogContent>
                 <DialogActions>
                     <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
-                    <MudButton Color="Color.Primary" OnClick="ValidateAIUsage">Ask</MudButton>
+                    <MudButton Color="Color.Primary" 
+                    Disabled="@isLoading"
+                            OnClick="ValidateAIUsage">Ask</MudButton>
                 </DialogActions>
             </MudDialog>
     </Authorized>
@@ -94,11 +98,15 @@
     private SubscriptionStatus subscriptionStatus;
     private MudTextField<string> textField;
     private AuthenticationState authenticationState;
+    private OpenAIClient client;
     private string usageIndicator = "";
+    private List<ChatRequestMessage> chatRequestMessages;
 
     protected override async Task OnInitializedAsync()
     {
         authenticationState = await authState.GetAuthenticationStateAsync();
+        client = new OpenAIClient("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");
+
         WithAnswerToggle();
     }
 
@@ -116,23 +124,70 @@
                 //Limit has been reached
                 subscriptionStatus = SubscriptionStatus.LimitReached;
                 limitIsReached = true;
+                isLoading = false;
                 StateHasChanged();
             }
             else if (subscriptionStatus.Equals(SubscriptionStatus.PremiumUser))
             {
                 subscriptionStatus = SubscriptionStatus.PremiumUser;
-                Send();
+                SendOpenAI();
             }
             else
             {
                 subscriptionStatus = SubscriptionStatus.FreeUser;
-                Send();
+                SendOpenAI();
             }
         }
         else
         {
             textField.Error = true;
             textField.ErrorText = "Please enter a message";
+            isLoading = false;
+        }
+    }
+
+    async void SendOpenAI()
+    {
+        try
+        {
+            var chatCompletionsOptions = new ChatCompletionsOptions()
+            {
+                DeploymentName = "gpt-3.5-turbo-0125",
+                Messages =
+                {
+                    new ChatRequestSystemMessage(Helpers.SystemPrompt),
+                    new ChatRequestUserMessage(question)
+                },
+                MaxTokens = 150,
+            };
+
+            // This is the non-streaming version of the API
+            Response<ChatCompletions> response = await client.GetChatCompletionsAsync(chatCompletionsOptions);
+            //Get first answer from the choices
+            aiAnswer = response.Value.Choices[0].Message.Content;
+
+            // This is the streaming version of the API
+            // await foreach (StreamingChatCompletionsUpdate item in client.GetChatCompletionsStreaming(chatCompletionsOptions))
+            // {
+            //     if (!string.IsNullOrEmpty(item.ContentUpdate))
+            //     {
+            //         isLoading = false;
+            //         var aiAnswerStringBuilder = new StringBuilder();
+            //         aiAnswerStringBuilder.Append(item.ContentUpdate);
+            //         aiAnswer = aiAnswerStringBuilder.ToString();
+            //     }
+            // }
+
+            await UpdateAICredits();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
         }
     }
 

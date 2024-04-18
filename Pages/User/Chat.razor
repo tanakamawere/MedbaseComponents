@@ -245,6 +245,7 @@
                     MessageContents = message.ContentItems
                 });
             }
+            await UpdateAICredits();
         }
         catch (Exception ex)
         {
@@ -255,7 +256,6 @@
         finally
         {
             _isReceivingResponse = false;
-            await UpdateAICredits();
             StateHasChanged();
         }
     }
