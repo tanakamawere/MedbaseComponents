@@ -5,8 +5,6 @@ VisualStudioVersion = 17.9.34622.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedbaseComponents", "MedbaseComponents.csproj", "{B5C96C84-8150-4037-A330-5860D3611B3D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MedbaseLibrary", "..\MedbaseLibrary\MedbaseLibrary.csproj", "{EF016C49-FC22-4BDE-85C5-610323C262E5}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,10 +15,6 @@ Global
 		{B5C96C84-8150-4037-A330-5860D3611B3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B5C96C84-8150-4037-A330-5860D3611B3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B5C96C84-8150-4037-A330-5860D3611B3D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EF016C49-FC22-4BDE-85C5-610323C262E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EF016C49-FC22-4BDE-85C5-610323C262E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EF016C49-FC22-4BDE-85C5-610323C262E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EF016C49-FC22-4BDE-85C5-610323C262E5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

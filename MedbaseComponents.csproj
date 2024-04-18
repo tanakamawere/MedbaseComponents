@@ -24,18 +24,17 @@
 
 	<ItemGroup>
 		<PackageReference Include="Markdig" Version="0.35.0" />
+		<PackageReference Include="MedbaseLibrary" Version="1.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.3" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.3" />
 		<PackageReference Include="MudBlazor" Version="6.6.0" />
+		
 		<PackageReference Include="MudBlazor.Markdown" Version="0.1.1" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="readme.md" Pack="true" PackagePath="." />
 		<None Include="medbase_logo.png" Pack="true" PackagePath="." />
 	</ItemGroup>
-	<!--<ItemGroup>
-	  <ProjectReference Include="..\MedbaseLibrary\MedbaseLibrary.csproj" />
-	</ItemGroup>-->
 	<ItemGroup>
 	  <Content Update="wwwroot\css\common.css">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
