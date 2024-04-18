@@ -24,7 +24,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="Markdig" Version="0.35.0" />
-		<PackageReference Include="MedbaseLibrary" Version="1.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.3" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.3" />
 		<PackageReference Include="MudBlazor" Version="6.6.0" />
