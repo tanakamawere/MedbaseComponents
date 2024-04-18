@@ -33,9 +33,9 @@
 		<None Include="readme.md" Pack="true" PackagePath="." />
 		<None Include="medbase_logo.png" Pack="true" PackagePath="." />
 	</ItemGroup>
-	<ItemGroup>
+	<!--<ItemGroup>
 	  <ProjectReference Include="..\MedbaseLibrary\MedbaseLibrary.csproj" />
-	</ItemGroup>
+	</ItemGroup>-->
 	<ItemGroup>
 	  <Content Update="wwwroot\css\common.css">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
