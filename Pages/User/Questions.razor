@@ -1,11 +1,7 @@
 ﻿@page "/questions/{topicRef:int}"
-@using MedbaseLibrary.Models
-@using MedbaseLibrary.Services
-@using MedbaseComponents.Controls
-@inject IDialogService DialogService
-@inject IApiRepository repository
+@page "/questions/{topicRef:int}/{source}"
+@inherits BasePage
 @using Markdig
-@inject NavigationManager navManager
 
 <PageTitle>@title</PageTitle>
     <HeadContent>
@@ -149,6 +145,8 @@
 @code {
     [Parameter]
     public int topicRef { get; set; } = 0;
+    [Parameter]
+    public string source { get; set; } = "";
     public int Answers { get; set; } = 0;
     private int paginationPage = 1;
     public bool searchBarOpen = false;
@@ -166,6 +164,11 @@
     private string description = "Questions on your chosen topic";
     private string title = "Questions | Medbase";
     private string image = "https://i.postimg.cc/T1DjN4S5/Logo.png";
+
+    #if !WINDOWS
+    [Inject]
+    public IDatabaseRepository databaseRepository { get; set; }
+    #endif
 
     private List<BreadcrumbItem> _items = new List<BreadcrumbItem>
     {
@@ -191,9 +194,24 @@
     private async Task GetQuestions(int page = 1)
     {
         isLoading = true;
-        QuestionPagedWithTopic = await repository.GetPagedQuestionsWithTopic(topicRef, page, 10f);
 
-        //QuestionPaged = await repository.GetPagedQuestions(topicRef, page, 10f);
+        if (!CheckIfIsMaui())
+        {
+            QuestionPagedWithTopic = await repository.GetPagedQuestionsWithTopic(topicRef, page, 10f);
+        }
+        else
+        {
+            if(string.IsNullOrEmpty(source))
+            {
+                QuestionPagedWithTopic = await repository.GetPagedQuestionsWithTopic(topicRef, page, 10f);
+            }
+#if !WINDOWS
+            else if (source.Equals("offline"))
+            {
+                QuestionPagedWithTopic = await databaseRepository.GetPagedQuestionsWithTopic(topicRef, page, 10f);
+            }
+#endif
+        }
         isLoading = false;
     }
     private void OpenSearchBar() => searchBarOpen = !searchBarOpen;

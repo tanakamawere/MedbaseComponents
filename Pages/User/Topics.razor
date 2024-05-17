@@ -1,34 +1,5 @@
 ﻿@page "/topics/{courseRef}"
-@using MedbaseLibrary.Models
-@using MedbaseLibrary.Services
-@using MedbaseComponents.Controls
-@using Microsoft.Maui.Devices
-@inject IApiRepository repository
-@inject IDialogService DialogService
-@inject NavigationManager navManager
-@inject ISnackbar Snackbar
-
-<PageTitle>@title</PageTitle>
-
-<HeadContent>
-    <title>@title</title>
-    <meta name="title" content="@title" />
-    <meta name="description" content="@description" />
-
-    <!-- Open Graph / Facebook -->
-    <meta name="og:type" content="website" />
-    <meta name="og:url" content="@navManager.BaseUri" />
-    <meta name="og:title" content="@title" />
-    <meta name="og:description" content="@description" />
-    <meta name="og:image" content="@image" />
-
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="@navManager.BaseUri" />
-    <meta name="twitter:title" content="@title" />
-    <meta name="twitter:description" content="@description" />
-    <meta name="twitter:image" content="@image" />
-</HeadContent>
+@inherits MedbaseComponents.Pages.BasePage
 
 <div class="container mt-1">
     <MudBreadcrumbs Items="_items"></MudBreadcrumbs>
@@ -56,7 +27,8 @@
                                     </CardHeaderContent>
                                 </MudCardHeader>
                                 <MudCardActions>
-                                    <MudButton Variant="Variant.Text" Color="Color.Primary" Href="@($"/questions/{item.TopicRef}")">MCQs</MudButton>
+                                    <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToQuestions(item.TopicRef)">Questions</MudButton>
+                                    @* <MudButton Variant="Variant.Text" Color="Color.Primary" @onclick="() => Download(item)">Download</MudButton> *@
                                 </MudCardActions>
                             </MudCard>
                             @*<div class="card h-100 shadow border-0">
@@ -91,12 +63,16 @@
 @code {
     [Parameter]
     public string courseRef { get; set; } = "1";
+
+    [Inject]
+    public IDatabaseRepository databaseRepository { get; set; }
     bool showCustomisation = false;
     int topicToCustomise;
     private bool negativeMarking = false;
     private int numberOfQuestions = 1;
     private bool isLoading;
     private Snackbar snackbar;
+    private string source { get; set; }
     private string description = "Topics on your chosen topic";
     private string title = "Topics | Medbase";
     private string image = "https://i.postimg.cc/T1DjN4S5/Logo.png";
@@ -110,6 +86,14 @@
     };
 
     private IEnumerable<Topic> TopicsList { get; set; } = Enumerable.Empty<Topic>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (CheckIfIsMaui() && !checkForInternet.InternetAvailable())
+        {
+            source = "offline";
+        }
+    }
 
     protected async override Task OnParametersSetAsync()
     {
@@ -136,5 +120,69 @@
     {
         var options = new DialogOptions { CloseOnEscapeKey = true };
         DialogService.Show<QuizCustomisationDialog>(topic.ToString(), options);
+    }
+
+    async Task Download(Topic topic)
+    {
+        if (topic is null) return;
+
+        var downloadingDialog = DialogService.Show<LoadingComponent>("Downloading...");
+        try
+        {
+            //add loading popup here
+
+            if (CheckIfAlreadyDownloaded(topic) == false)
+            {
+                await DownloadMethod(topic);
+                snackbar = Snackbar.Add("Download was successful", Severity.Success);
+            }
+            else
+                snackbar = Snackbar.Add("This topic is already downloaded", Severity.Info);
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+        finally
+        {
+            //destroy loading popup here
+            downloadingDialog.Close();
+        }
+    }
+
+    async Task DownloadMethod(Topic topic)
+    {
+        await databaseRepository.SaveTopicAndQuestionsAsync(await repository.GetQuestionsSimple(topic.TopicRef), topic);
+    }
+
+    bool CheckIfAlreadyDownloaded(Topic topic)
+    {
+        List<Topic> downloadedTopics = databaseRepository.GetTopicsAsync().ToList();
+        bool downloaded = false;
+        Topic topicFound = downloadedTopics.Where(x => x.Name == topic.Name).FirstOrDefault();
+
+        if (topicFound is not null)
+        {
+            downloaded = true;
+        }
+        return downloaded;
+    }
+
+
+    private void GoToQuestions(int topicReference)
+    {
+        if (string.IsNullOrEmpty(source))
+        {
+            navManager.NavigateTo($"/questions/{topicReference}");
+        }
+        else
+        {
+            navManager.NavigateTo($"/questions/{topicReference}/{source}");
+        }
+    }
+
+    private void GoToNotes(int topicReference)
+    {
+        navManager.NavigateTo($"/note/{topicReference}");
     }
 }

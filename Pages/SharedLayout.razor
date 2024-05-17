@@ -1,12 +1,15 @@
 ﻿@using MedbaseLibrary.Helpers
+@using MedbaseLibrary.MsalClient
 @using Microsoft.Identity.Client
 @using Microsoft.Extensions.Configuration
 @inherits LayoutComponentBase
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
-@inject AuthenticationStateProvider authState
+@inject IPCAWrapper _pcaWrapper;
+@inject IConfiguration _configuration
 @inject NavigationManager navManager
-@inject IAuthMemory _authMemory
+@inject ISnackbar Snackbar
+@inject IPlatformInfoService _platformInfoService
 
 <PageTitle>Medbase | Medical School MCQs</PageTitle>
 
@@ -23,108 +26,72 @@
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <MudNavMenu Rounded="true" Margin="Margin.Dense" Color="Color.Primary" Class="pa-2">
-            <AuthorizeView>
-                <Authorized>
-                    <MudMenu>
-                        <ActivatorContent>
-                            <div class="d-flex justify-content-center align-items-center p-2">
-                                <MudAvatar>TM</MudAvatar>
-                                <MudText Class="my-auto ms-3">@authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName).Value @authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname).Value</MudText>
-                            </div>
-                        </ActivatorContent>
-                        <ChildContent>
-                            <MudMenuItem Href="/profile" Icon="@Icons.Material.Filled.Person">
-                                Profile
-                            </MudMenuItem>
-                            <MudMenuItem OnClick="ThemeToggle" Icon="@(_isDarkMode == true ? Icons.Material.Filled.DarkMode : Icons.Material.Filled.LightMode)">
-                                @(_isDarkMode == true ? "Dark Mode On" : "Dark Mode Off")
-                            </MudMenuItem>
-                            <MudMenuItem Icon="@Icons.Material.Filled.Logout" OnClick="SignOut">
-                                Sign Out
-                            </MudMenuItem>
-                        </ChildContent>
-                    </MudMenu>
-                </Authorized>
-                <NotAuthorized>
-                    <MudMenu>
-                        <ActivatorContent>
-                            <div class="d-flex justify-content-center align-items-center p-2">
-                                <MudAvatar>GU</MudAvatar>
-                                <MudText Class="my-auto ms-3">Guest User</MudText>
-                            </div>
-                        </ActivatorContent>
-                        <ChildContent>
-                            <MudMenuItem OnClick="ThemeToggle" Icon="@(_isDarkMode == true ? Icons.Material.Filled.DarkMode : Icons.Material.Filled.LightMode)">
-                                @(_isDarkMode == true ? "Dark Mode On" : "Dark Mode Off")
-                            </MudMenuItem>
-                            <MudMenuItem Href="/signup" Icon="@Icons.Material.Filled.Create">Sign Up</MudMenuItem>
-                            <MudMenuItem Href="/signin" Icon="@Icons.Material.Filled.Login">Sign In</MudMenuItem>
-                        </ChildContent>
-                    </MudMenu>
-                </NotAuthorized>
-            </AuthorizeView>
+           <MudPaper>
+                @if (isBusy)
+                {
+                    <MedbaseComponents.Controls.LoadingComponent Message="Logging in..."/>
+                }
+                else
+                {
+                    <LoginDisplay />
+                    @* @if (isLoggedIn)
+                    {
+                        <MudNavLink Class="my-auto ms-3">
+                            Hello there
+                        </MudNavLink>
+                        <MudNavLink Icon="@Icons.Material.Filled.Logout" OnClick="OnLogoutClicked">
+                            Sign Out
+                        </MudNavLink>
+                    }
+                    else
+                    {
+                        <MudNavLink OnClick="OnLoginClicked" Icon="@Icons.Material.Filled.Login">
+                            Log In
+                        </MudNavLink>
+                    } *@
+                }
+            </MudPaper>
 
             <MudDivider />
 
             <MudNavLink Href="/home" Icon="@Icons.Material.Filled.Dashboard">Home</MudNavLink>
             @* <MudNavLink Href="/pricing" Icon="@Icons.Material.Filled.PriceChange">Pricing</MudNavLink> *@
-            <MudNavLink Href="/courses" Icon="@Icons.Material.Filled.Book">Courses</MudNavLink>
+            
+            <MudNavLink Href="/courses" Class="@(IsMaui == true ? "d-block" : "d-none")" Icon="@Icons.Material.Filled.Book">Courses</MudNavLink>
+            <MudNavLink Href="/downloads" Class="@(IsMaui == true ? "d-none" : "d-block")" Icon="@Icons.Material.Filled.Download">Downloads</MudNavLink>
             <MudNavLink Href="/notes" Icon="@Icons.Material.Filled.Note">Notes</MudNavLink>
             <MudNavLink Href="/chat" Icon="@Icons.Material.Filled.Computer">Medbase AI</MudNavLink> 
             <MudNavLink Href="/articles" Icon="@Icons.Material.Filled.Newspaper">Articles</MudNavLink>
             @* <MudNavLink Href="/Gamma" Icon="@Icons.Material.Filled.Download">Gamma</MudNavLink> *@
             <MudNavLink Href="/about" Icon="@Icons.Material.Filled.QuestionAnswer">About & Contact</MudNavLink>
-            <AuthorizeView Roles="administrator, manager, contributor">
-                <MudNavLink Href="/admin" Icon="@Icons.Material.Filled.AdminPanelSettings">Medbase Admin</MudNavLink>
-            </AuthorizeView>
-            <AuthorizeView>
-                <NotAuthorized>
-                    <MudNavLink Href="/signin" Icon="@Icons.Material.Filled.Login">Sign In</MudNavLink>
-                </NotAuthorized>
-            </AuthorizeView>
+            <MudNavLink OnClick="ThemeToggle" Icon="@(_isDarkMode == true ? Icons.Material.Filled.DarkMode : Icons.Material.Filled.LightMode)">
+                @(_isDarkMode == true ? "Dark Mode On" : "Dark Mode Off")
+            </MudNavLink>
         </MudNavMenu>
     </MudDrawer>
     <MudMainContent>
         @Body
     </MudMainContent>
-    @* <footer class="py-3 my-4 bottom-0">
-        <ul class="nav justify-content-center border-bottom pb-3 mb-3">
-            <li class="nav-item">
-                <MudNavLink Href="/home">Home</MudNavLink>
-            </li>
-            <li class="nav-item">
-                <MudNavLink Href="/notes">Notes</MudNavLink>
-            </li>
-            <li class="nav-item">
-                <MudNavLink Href="/courses">Courses</MudNavLink>
-            </li>
-            <li class="nav-item">
-                <MudNavLink Href="/articles">Articles</MudNavLink>
-            </li>
-            <li class="nav-item">
-                <MudNavLink Href="/about">About & Contact</MudNavLink>
-            </li>
-        </ul>
-        <p class="text-center text-body-secondary">© @DateTime.Now.Year Medbase, Inc</p>
-    </footer> *@
 </MudLayout>
 @code {
-
-    private AuthenticationState authenticationState;
-    private string FirstLastName = "";
+    private bool isBusy = false;
+    private bool isLoggedIn;
+    private Snackbar snackbar;
+    private bool IsMaui;
 
     protected override async Task OnInitializedAsync()
     {
-        authenticationState = await authState.GetAuthenticationStateAsync();
+        CheckPlatform();
     }
 
-    //Sign out method
-    private async Task SignOut()
+    private void CheckPlatform()
     {
-        string userId = authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName).Value;
-        _authMemory.RemoveToken(Helpers.AuthMemory);
-        navManager.NavigateTo("/", true);
-    }
+#if WINDOWS || ANDROID || IOS
+    IsMaui = true;
+#else
+        IsMaui = true;
+#endif
+}
 
     bool _drawerOpen = true;
     private MudThemeProvider _mudThemeProvider;
@@ -164,5 +131,60 @@
     {
         _isDarkMode = newValue;
         StateHasChanged();
+    }
+
+    private async void OnLoginClicked()
+    {
+        try
+        {
+            // Attempt silent login, and obtain access token.
+            var result = await _pcaWrapper.AcquireTokenSilentAsync(_pcaWrapper.Scopes).ConfigureAwait(false);
+
+            // Set access token.
+            GlobalValues.AccessToken = result?.AccessToken;
+            if (GlobalValues.AccessToken != null)
+            {
+                isLoggedIn = true;
+                snackbar = Snackbar.Add("You are now signed in!", Severity.Success);
+            }
+        } 
+        // A MsalUiRequiredException will be thrown, if this is the first attempt to login, or after logging out.
+        catch (MsalUiRequiredException)
+        {
+            try
+            {
+                // Perform interactive login, and obtain access token.
+                var result = await _pcaWrapper.AcquireTokenInteractiveAsync(_pcaWrapper?.Scopes).ConfigureAwait(false);
+
+                // Set access token.
+                GlobalValues.AccessToken = result?.AccessToken;
+                if (GlobalValues.AccessToken != null)
+                {
+                    isLoggedIn = true;
+                    snackbar = Snackbar.Add("You are now signed in!", Severity.Success);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Ignore.
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            snackbar = Snackbar.Add("An error occurred while signing in. Please try again.", Severity.Error);
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    private async void OnLogoutClicked()
+    {
+        await _pcaWrapper.SignOutAsync().ConfigureAwait(false);
+        GlobalValues.AccessToken = null;
+        isLoggedIn = false;
+        snackbar = Snackbar.Add("You are now signed out!", Severity.Success);
     }
 }
