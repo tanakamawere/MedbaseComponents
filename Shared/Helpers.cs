@@ -8,4 +8,6 @@ public class Helpers
     {
         _ = Snackbar.Add(message, severity);
     }
+
+    public const string OpenApiKey = "";
 }

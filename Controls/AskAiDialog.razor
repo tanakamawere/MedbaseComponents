@@ -70,7 +70,7 @@
         <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
         <MudButton Color="Color.Primary"
                    Disabled="@isLoading"
-                   OnClick="ValidateAIUsage">Ask</MudButton>
+                   OnClick="SendOpenAI">Ask</MudButton>
     </DialogActions>
 </MudDialog>
 @code {
@@ -96,54 +96,54 @@
 
     protected override async Task OnInitializedAsync()
     {
-        authenticationState = await authState.GetAuthenticationStateAsync();
-        client = new OpenAIClient(Environment.GetEnvironmentVariable("OPENAI_API_KEY"));
+        client = new OpenAIClient(MedbaseComponents.Shared.Helpers.OpenApiKey);
 
         WithAnswerToggle();
     }
 
-    private async Task ValidateAIUsage()
-    {
-        if (string.IsNullOrWhiteSpace(question))
-        {
-            textField.Error = true;
-            textField.ErrorText = "Please enter a message";
-        }
-        else if (!checkForInternet.InternetAvailable())
-        {
-            textField.Error = true;
-            textField.ErrorText = "Please connect to the internet to use Medbase AI";
-        }
-        else
-        {
-            isLoading = true;
-            isSubscribed = bool.Parse(authenticationState.User.Claims.FirstOrDefault(c => c.Type == CustomClaimTypes.SubscriptionActive).Value);
+    // private async Task ValidateAIUsage()
+    // {
+    //     if (string.IsNullOrWhiteSpace(question))
+    //     {
+    //         textField.Error = true;
+    //         textField.ErrorText = "Please enter a message";
+    //     }
+    //     else if (!checkForInternet.InternetAvailable())
+    //     {
+    //         textField.Error = true;
+    //         textField.ErrorText = "Please connect to the internet to use Medbase AI";
+    //     }
+    //     else
+    //     {
+    //         isLoading = true;
+    //         isSubscribed = bool.Parse(authenticationState.User.Claims.FirstOrDefault(c => c.Type == CustomClaimTypes.SubscriptionActive).Value);
 
-            subscriptionStatus = await Helpers.CheckForSubscriptionStatus(apiRepository, isSubscribed, authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
+    //         subscriptionStatus = await Helpers.CheckForSubscriptionStatus(apiRepository, isSubscribed, authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
 
-            if (subscriptionStatus.Equals(SubscriptionStatus.LimitReached))
-            {
-                //Limit has been reached
-                subscriptionStatus = SubscriptionStatus.LimitReached;
-                limitIsReached = true;
-                isLoading = false;
-                StateHasChanged();
-            }
-            else if (subscriptionStatus.Equals(SubscriptionStatus.PremiumUser))
-            {
-                subscriptionStatus = SubscriptionStatus.PremiumUser;
-                SendOpenAI();
-            }
-            else
-            {
-                subscriptionStatus = SubscriptionStatus.FreeUser;
-                SendOpenAI();
-            }
-        }
-    }
+    //         if (subscriptionStatus.Equals(SubscriptionStatus.LimitReached))
+    //         {
+    //             //Limit has been reached
+    //             subscriptionStatus = SubscriptionStatus.LimitReached;
+    //             limitIsReached = true;
+    //             isLoading = false;
+    //             StateHasChanged();
+    //         }
+    //         else if (subscriptionStatus.Equals(SubscriptionStatus.PremiumUser))
+    //         {
+    //             subscriptionStatus = SubscriptionStatus.PremiumUser;
+    //             SendOpenAI();
+    //         }
+    //         else
+    //         {
+    //             subscriptionStatus = SubscriptionStatus.FreeUser;
+    //             SendOpenAI();
+    //         }
+    //     }
+    // }
 
     async void SendOpenAI()
     {
+        isLoading = true;
         try
         {
             var chatCompletionsOptions = new ChatCompletionsOptions()
@@ -173,8 +173,6 @@
             //         aiAnswer = aiAnswerStringBuilder.ToString();
             //     }
             // }
-
-            await UpdateAICredits();
         }
         catch (Exception ex)
         {
@@ -187,60 +185,26 @@
         }
     }
 
-    // async void Send()
+    // private async Task UpdateAICredits()
     // {
-    //     try
+    //     //Check if subscription status is premium
+    //     switch (subscriptionStatus)
     //     {
-    //         isLoading = true;
-    //         var response = await aiService.CompletionPost(question, false);
-    //         if (response.IsSuccessStatusCode)
-    //         {
-
-    //             // Read the response content as a string
-    //             Completion? completion = await response.Content.ReadFromJsonAsync<Completion>();
-
-    //             Message choice = completion.Choices[0].Message;
-    //             Console.WriteLine(choice.content);
-    //             // Now you can work with the response content (e.g., parse JSON, extract data)
-    //             aiAnswer = choice.content;
-    //         }
-    //         else
-    //         {
-    //             aiAnswer = "Something went wrong... Check your internet connection";
-    //         }
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine(ex);
-    //     }
-    //     finally
-    //     {
-    //         isLoading = false;
-    //         await UpdateAICredits();
-    //         StateHasChanged();
+    //         case SubscriptionStatus.PremiumUser:
+    //             usageIndicator = subscriptionStatus.ToString();
+    //             break;
+    //         case SubscriptionStatus.LimitReached:
+    //             usageIndicator = subscriptionStatus.ToString();
+    //             break;
+    //         case SubscriptionStatus.FreeUser:
+    //             usageCount = await apiRepository.GetUserUsageCount(authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
+    //             usageIndicator = $"{usageCount} / {Helpers.MaxFreeAIUsage} free daily AI credits left";
+    //             break;
+    //         default:
+    //             usageIndicator = "";
+    //             break;
     //     }
     // }
-
-    private async Task UpdateAICredits()
-    {
-        //Check if subscription status is premium
-        switch (subscriptionStatus)
-        {
-            case SubscriptionStatus.PremiumUser:
-                usageIndicator = subscriptionStatus.ToString();
-                break;
-            case SubscriptionStatus.LimitReached:
-                usageIndicator = subscriptionStatus.ToString();
-                break;
-            case SubscriptionStatus.FreeUser:
-                usageCount = await apiRepository.GetUserUsageCount(authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
-                usageIndicator = $"{usageCount} / {Helpers.MaxFreeAIUsage} free daily AI credits left";
-                break;
-            default:
-                usageIndicator = "";
-                break;
-        }
-    }
 
     private void WithAnswerToggle()
     {
