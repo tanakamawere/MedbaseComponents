@@ -1,0 +1,19 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using MedbaseLibrary.Models
+@using MedbaseLibrary.Services
+@using MedbaseComponents.Controls
+@using Microsoft.Maui.Devices
+@inject IApiRepository repository
+@inject IDialogService DialogService
+@inject NavigationManager navManager
+@inject ISnackbar Snackbar
+
+@code {
+    [Inject]
+    public ICheckForInternet checkForInternet { get; set; }
+
+    public bool CheckIfIsMaui()
+    {
+        return false;
+    }
+}

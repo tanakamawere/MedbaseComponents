@@ -38,6 +38,9 @@
 	  <ProjectReference Include="..\MedbaseLibrary\MedbaseLibrary.csproj" />
 	</ItemGroup>
 	<ItemGroup>
+	  <Content Update="Controls\LoginDisplay.razor">
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </Content>
 	  <Content Update="wwwroot\css\common.css">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </Content>

@@ -1,28 +1,29 @@
-﻿@page "/note/{topicReference:int}"
+﻿@page "/note/{id:int}"
 @using MedbaseLibrary.Models
 @inject IApiRepository repository
+@inject INotesRepository notesRepository
 @using Markdig
 @inject NavigationManager navManager;
 
 
-<PageTitle>@Note.TopicReferenceName | Medbase</PageTitle>
+<PageTitle>@Note.Title | Medbase</PageTitle>
 <HeadContent>
-    <title>@Note.TopicReferenceName | Medbase</title>
-    <meta name="title" content="@Note.TopicReferenceName | Medbase" />
-    <meta name="description" content="Read notes on @Note.TopicReferenceName. Dive in" />
+    <title>@Note.Title | Medbase</title>
+    <meta name="title" content="@Note.Title | Medbase" />
+    <meta name="description" content="Read notes on @Note.Title. Dive in" />
 
     <!-- Open Graph / Facebook -->
     <meta name="og:type" content="website" />
     <meta name="og:url" content="@navManager.BaseUri" />
-    <meta name="og:title" content="@Note.TopicReferenceName | Medbase" />
-    <meta name="og:description" content="Read notes on @Note.TopicReferenceName. Dive in" />
+    <meta name="og:title" content="@Note.Title | Medbase" />
+    <meta name="og:description" content="Read notes on @Note.Title. Dive in" />
     <meta name="og:image" content="@image" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="@navManager.BaseUri" />
-    <meta name="twitter:title" content="@Note.TopicReferenceName | Medbase" />
-    <meta name="twitter:description" content="Read notes on @Note.TopicReferenceName. Dive in" />
+    <meta name="twitter:title" content="@Note.Title | Medbase" />
+    <meta name="twitter:description" content="Read notes on @Note.Title. Dive in" />
     <meta name="twitter:image" content="@image" />
 </HeadContent>
 
@@ -37,13 +38,13 @@ else if (Note == null && loading.Equals(false))
 else
 {
     <!-- Header-->
-    <header class="py-5 medbase-font background-state">
+    <header class="py-5 mb-4 medbase-font background-state">
         <div class="container px-5">
             <div class="row gx-5 align-items-center justify-content-center">
                 <div class="col-lg-8 col-xl-4 col-xxl-4">
                     <div class="my-5 text-center text-xl-start">
                         <MudText Typo="Typo.h5" class="display-5 fw-bolder mb-2 text-light">
-                            @Note.TopicReferenceName
+                            @Note.Title
                         </MudText>
                         <MudText class="text-light fw-normal mb-4">
                             Last Updated: @Note.DateUpdated.ToString("dddd, dd MMMM yyyy") at @Note.DateUpdated.ToString("hh:mm")
@@ -52,7 +53,7 @@ else
                 </div>
                 <div class="col-xl-8 col-xxl-8 text-center">
                     <img class="img-fluid rounded-3 my-5"
-                         src="img/courses.svg" alt="..." style="max-height:400px" />
+                         src="img/courses.png" alt="..." style="max-height:400px" />
                 </div>
             </div>
         </div>
@@ -64,19 +65,19 @@ else
 
 @code {
     [Parameter]
-    public int topicReference { get; set; } = 0;
-    public NoteDto Note { get; set; } = new();
+    public int id { get; set; } = 0;
+    public Note Note { get; set; } = new();
     public bool loading { get; set; } = true;
 
     protected override async Task OnParametersSetAsync()
     {
-        if (topicReference != 0)
+        if (id != 0)
         {
             loading = true;
-            Note = await repository.GetNoteDtoByReference(topicReference);
+            Note = await notesRepository.GetNotesById(id);
             loading = false;
         }
-        else if (topicReference == null)
+        else if (id == null)
         { return; }
     }
 

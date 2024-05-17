@@ -39,103 +39,94 @@
     <meta name="twitter:image" content="@image" />
 </HeadContent>
 
-<AuthorizeView>
-    <Authorized>
-        <div class="container-fluid h-100 @(limitIsReached ? "d-none" : "d-block")">
-            <div class="overflow-auto chat-window">
-                <MudGrid Justify="Justify.Center">
-                    @if (AiChats.Count == 0 && _isReceivingResponse == false)
-                    {
-                        <div class="d-flex align-content-center justify-content-center flex-wrap flex-grow-1 full-height">
-                            <ChatExamples Message="Medbase AI" OnExampleClicked="@SendOpenAiMessage" />
-                        </div>
-                    }
-                    else if (_isReceivingResponse == true)
-                    {
-                        <div class="d-flex flex-column overflow-auto w-100 p-3">
-                            @foreach (var item in AiChats)
-                            {
-                                foreach (var content in item.MessageContents)
-                                {
-                                    if (content is MessageTextContent textContent)
-                                    {
-                                        <ChatMessage Message="@textContent.Text" WhoSent="@item.Role.ToString()" />
-                                    }
-                                }
-                            }
-                            <SkeletonLoadingComponent />
-                        </div>
-                    }
-                    else if (AiChats.Count >= 1 && _isReceivingResponse == false)
-                    {
-                        <div class="d-flex flex-column overflow-auto w-100 p-3">
-                            @foreach (var item in AiChats)
-                            {
-                                foreach (var content in item.MessageContents)
-                                {
-                                    if (content is MessageTextContent textContent)
-                                    {
-                                        <ChatMessage Message="@textContent.Text" WhoSent="@item.Role.ToString()" />
-                                    }
-                                }
-                            }
 
-                            @* @foreach (var (role, contentItems) in messagesDict)
-                            {
-                                foreach (var content in contentItems)
-                                {
-                                    if (content is MessageTextContent textContent)
-                                    {
-                                        <ChatMessage Message="@textContent.Text" WhoSent="@role.ToString()" />
-                                    }
-                                }
-                            } *@
-                        </div>
-                    }
-                </MudGrid>
-            </div>
-            <div class="d-flex flex-column justify-content-center align-items-center mb-3">
-                <div class="d-flex">
-                    <MudText>
-                        @usageIndicator
-                    </MudText>
-                    <MudTooltip Arrow="true" Text="Clear chat history" Placement="Placement.Top">
-                        <MudIconButton Color="Color.Primary" Size="Size.Small"
-                                       Icon=@Icons.Material.Filled.Refresh
-                                       OnClick="@OnClearChat" Disabled=@(_isReceivingResponse || AiChats.Count == 0) />
-                    </MudTooltip>
+<div class="container-fluid h-100 @(limitIsReached ? "d-none" : "d-block")">
+    <div class="overflow-auto chat-window">
+        <MudGrid Justify="Justify.Center">
+            @if (AiChats.Count == 0 && _isReceivingResponse == false)
+            {
+                <div class="d-flex align-content-center justify-content-center flex-wrap flex-grow-1 full-height">
+                    <ChatExamples Message="Medbase AI" OnExampleClicked="@SendOpenAiMessage" />
                 </div>
-                <MudTextField @bind-Value="@input" Label="Text"
-                              Variant="Variant.Outlined"
-                              AdornmentColor="Color.Secondary" AutoFocus="true"
-                              Placeholder="Ask Medbase AI..." Lines="3"
-                              IconSize="Size.Large"
-                              Class="w-100 mx-lg-5"
-                              AdornmentIcon="@Icons.Material.Filled.Send"
-                              Adornment="Adornment.End"
-                              @ref="@textField"
-                              OnAdornmentClick="@CheckForSubscriptionUsageStatus"
-                              Disabled=@_isReceivingResponse
-                              HelperText="Use Shift + Enter for new lines" Immediate="true"
-                              OnKeyUp="@OnKeyUpAsync" Clearable="true"
-                              Counter="1_000" MaxLength="1_000" />
+            }
+            else if (_isReceivingResponse == true)
+            {
+                <div class="d-flex flex-column overflow-auto w-100 p-3">
+                    @foreach (var item in AiChats)
+                    {
+                        foreach (var content in item.MessageContents)
+                        {
+                            if (content is MessageTextContent textContent)
+                            {
+                                <ChatMessage Message="@textContent.Text" WhoSent="@item.Role.ToString()" />
+                            }
+                        }
+                    }
+                    <SkeletonLoadingComponent />
+                </div>
+            }
+            else if (AiChats.Count >= 1 && _isReceivingResponse == false)
+            {
+                <div class="d-flex flex-column overflow-auto w-100 p-3">
+                    @foreach (var item in AiChats)
+                    {
+                        foreach (var content in item.MessageContents)
+                        {
+                            if (content is MessageTextContent textContent)
+                            {
+                                <ChatMessage Message="@textContent.Text" WhoSent="@item.Role.ToString()" />
+                            }
+                        }
+                    }
 
-            </div>
-        </div>
-        <div>
-            <!--Get Medbase Premium banner-->
-            <MudText Typo="Typo.body1" Class="@(limitIsReached ? "d-block" : "d-none")">
-                Get Medbase Premium, pretty please
+                    @* @foreach (var (role, contentItems) in messagesDict)
+                {
+                foreach (var content in contentItems)
+                {
+                if (content is MessageTextContent textContent)
+                {
+                <ChatMessage Message="@textContent.Text" WhoSent="@role.ToString()" />
+                }
+                }
+                } *@
+                </div>
+            }
+        </MudGrid>
+    </div>
+    <div class="d-flex flex-column justify-content-center align-items-center mb-3">
+        <div class="d-flex">
+            <MudText>
+                @usageIndicator
             </MudText>
+            <MudTooltip Arrow="true" Text="Clear chat history" Placement="Placement.Top">
+                <MudIconButton Color="Color.Primary" Size="Size.Small"
+                               Icon=@Icons.Material.Filled.Refresh
+                               OnClick="@OnClearChat" Disabled=@(_isReceivingResponse || AiChats.Count == 0) />
+            </MudTooltip>
         </div>
-    </Authorized>
-    <NotAuthorized>
-        <div class="d-flex justify-content-center align-items-center h-100">
-            <SignInInfoPage />
-        </div>
-    </NotAuthorized>
-</AuthorizeView>
+        <MudTextField @bind-Value="@input" Label="Text"
+                      Variant="Variant.Outlined"
+                      AdornmentColor="Color.Secondary" AutoFocus="true"
+                      Placeholder="Ask Medbase AI..." Lines="3"
+                      IconSize="Size.Large"
+                      Class="w-100 mx-lg-5"
+                      AdornmentIcon="@Icons.Material.Filled.Send"
+                      Adornment="Adornment.End"
+                      @ref="@textField"
+                      OnAdornmentClick="@CheckForSubscriptionUsageStatus"
+                      Disabled=@_isReceivingResponse
+                      HelperText="Use Shift + Enter for new lines" Immediate="true"
+                      OnKeyUp="@OnKeyUpAsync" Clearable="true"
+                      Counter="1_000" MaxLength="1_000" />
 
+    </div>
+</div>
+<div>
+    <!--Get Medbase Premium banner-->
+    <MudText Typo="Typo.body1" Class="@(limitIsReached ? "d-block" : "d-none")">
+        Get Medbase Premium, pretty please
+    </MudText>
+</div>
 
 @code {
     //SEO Stuff

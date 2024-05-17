@@ -9,8 +9,8 @@
                 @((MarkupString)Markdown.ToHtml(Explanation == null ? " " : Explanation))
             </MudText>
         </MudItem>
-        <MudItem xs="1">
-            <MudIconButton OnClick="@(() => AskMedbaseClicked.InvokeAsync())" Icon="@Icons.Material.Filled.AutoAwesome">Ask AI</MudIconButton>
+        <MudItem xs="3">
+            <MudIconButton Size="Size.Medium" OnClick="@(() => AskMedbaseClicked.InvokeAsync())" Icon="@Icons.Material.Filled.AutoAwesome">Ask AI</MudIconButton>
         </MudItem>
     </MudGrid>
 </MudPaper>

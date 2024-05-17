@@ -1,7 +1,8 @@
 ﻿@page "/notes"
 @using MedbaseLibrary.Models
-@inject NavigationManager navManager;
+@inject NavigationManager navManager
 @inject IApiRepository repository
+@inject INotesRepository notesRepository
 <PageTitle>@title</PageTitle>
     <HeadContent>
         <title>@title</title>
@@ -42,28 +43,30 @@
 </header>
 
 <MudContainer Class="mt-5">
-        @if (!_courseTopics.Any())
+        @if (!_courseNotes.Any())
         {
         <LoadingComponent />
     }
     else
     {
         <div class="row gx-5">
-            <Virtualize Items="_courseTopics" Context="courseTopics" TItem="CourseTopicsDto">
+            <Virtualize Items="_courseNotes" Context="courseNotes" TItem="CourseNotesDto">
                 <ItemContent>
                     <div class="col-lg-4 mb-5">
                         <MudCard>
-                            <MudCardMedia Image="@courseTopics.CourseImage" Height="100" />
+                            <MudCardMedia Image="@courseNotes.CourseImage" Height="100" />
                             <MudCardHeader>
                                 <CardHeaderContent>
-                                    <MudText Typo="Typo.h5">@courseTopics.Course</MudText>
+                                    <MudText Typo="Typo.h5">@courseNotes.Course</MudText>
                                 </CardHeaderContent>
                             </MudCardHeader>
                                 <MudCardContent>
-                                    @foreach (var topic in courseTopics.Topics)
+                                @foreach (var topic in courseNotes.Notes)
                                 {
                                     @* <MudText @onclick="() => GoTo(topic.TopicRef)" Typo="Typo.body1">@topic.Name</MudText> *@
-                                    <span>> </span><MudLink @onclick="() => GoTo(topic.TopicRef)" Typo="Typo.body1">@topic.Name</MudLink> <br/>
+                                    <MudLink @onclick="() => GoTo(topic.Id)" 
+                                        Typo="Typo.body1" 
+                                        Class="fw-bolder">@topic.Title</MudLink> <br/>
                                 }
                             </MudCardContent>
                         </MudCard>
@@ -75,7 +78,7 @@
 </MudContainer>
 
 @code {
-    private List<CourseTopicsDto> _courseTopics = new();
+    private List<CourseNotesDto> _courseNotes = new();
     private bool loading = true;
 
     private string description = "Medbase notes are a convenient and effective way to study for medical school exams. A summary of key slides and high yield information. Dive in!";
@@ -86,11 +89,11 @@
     protected override async Task OnInitializedAsync()
     {
         loading = true;
-        _courseTopics = await repository.GetListCourseTopicsDto();
+        _courseNotes = await notesRepository.GetNotesWithCoursesAsync();
         loading = false;
     }
-    private void GoTo(int topicRef)
+    private void GoTo(int id)
     {
-        navManager.NavigateTo($"/note/{topicRef}");
+        navManager.NavigateTo($"/note/{id}");
     }
 }

@@ -1,5 +1,36 @@
 ﻿@page "/topics/{courseRef}"
-@inherits MedbaseComponents.Pages.BasePage
+@using MedbaseLibrary.Models
+@using MedbaseLibrary.Services
+@using MedbaseComponents.Controls
+@using Microsoft.Maui.Devices
+@inject IApiRepository repository
+@inherits BasePage
+@inject IDialogService DialogService
+@inject NavigationManager navManager
+@inject ISnackbar Snackbar
+
+<PageTitle>@title</PageTitle>
+
+<HeadContent>
+    <title>@title</title>
+    <meta name="title" content="@title" />
+    <meta name="description" content="@description" />
+
+    <!-- Open Graph / Facebook -->
+    <meta name="og:type" content="website" />
+    <meta name="og:url" content="@navManager.BaseUri" />
+    <meta name="og:title" content="@title" />
+    <meta name="og:description" content="@description" />
+    <meta name="og:image" content="@image" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="@navManager.BaseUri" />
+    <meta name="twitter:title" content="@title" />
+    <meta name="twitter:description" content="@description" />
+    <meta name="twitter:image" content="@image" />
+</HeadContent>
+
 
 <div class="container mt-1">
     <MudBreadcrumbs Items="_items"></MudBreadcrumbs>
