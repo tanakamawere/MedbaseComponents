@@ -11,6 +11,7 @@
 @inject NavigationManager navManager
 @inject ISnackbar Snackbar
 @inject IPlatformInfoService _platformInfoService
+@inject AuthenticationStateProvider authStateProvider
 
 <PageTitle>Medbase | Medical School MCQs</PageTitle>
 
@@ -27,19 +28,6 @@
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <MudNavMenu Rounded="true" Margin="Margin.Dense" Color="Color.Primary" Class="pa-2">
-           <MudPaper>
-                @if (isBusy)
-                {
-                    <MedbaseComponents.Controls.LoadingComponent Message="Logging in..."/>
-                }
-                else
-                {
-                    <LoginDisplay />
-                }
-            </MudPaper>
-
-            <MudDivider />
-
             <MudNavLink Href="/home" Icon="@Icons.Material.Filled.Dashboard">Home</MudNavLink>
             @* <MudNavLink Href="/pricing" Icon="@Icons.Material.Filled.PriceChange">Pricing</MudNavLink> *@
             
@@ -53,6 +41,28 @@
             <MudNavLink OnClick="ThemeToggle" Icon="@(_isDarkMode == true ? Icons.Material.Filled.DarkMode : Icons.Material.Filled.LightMode)">
                 @(_isDarkMode == true ? "Dark Mode On" : "Dark Mode Off")
             </MudNavLink>
+
+            <MudDivider />
+
+            <MudPaper>
+                @if (isBusy)
+                {
+                    <MedbaseComponents.Controls.LoadingComponent Message="Logging in..." />
+                }
+                else
+                {
+                    ﻿<AuthorizeView>
+                        <Authorized>
+                            <MudNavLink OnClick="() => OnLogoutClicked()">Log out</MudNavLink>
+                            <MudText>Logged in as: @UserName</MudText>
+                        </Authorized>
+                        <NotAuthorized>
+                            <MudNavLink OnClick="() => OnLoginClicked()">Log in</MudNavLink>
+                        </NotAuthorized>
+                    </AuthorizeView>
+                }
+            </MudPaper>
+
         </MudNavMenu>
     </MudDrawer>
     <MudMainContent>
@@ -63,10 +73,13 @@
     private bool isBusy = false;
     private bool isLoggedIn;
     private Snackbar snackbar;
+    private string UserName = "";
     private bool IsMaui;
+    private AuthenticationState authenticationState { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+        authenticationState = await authStateProvider.GetAuthenticationStateAsync();
         CheckPlatform();
     }
 
@@ -77,7 +90,7 @@
 #else
         IsMaui = true;
 #endif
-}
+    }
 
     bool _drawerOpen = true;
     private MudThemeProvider _mudThemeProvider;
@@ -121,6 +134,7 @@
 
     private async void OnLoginClicked()
     {
+        isBusy = true;
         try
         {
             // Attempt silent login, and obtain access token.

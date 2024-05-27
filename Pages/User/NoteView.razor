@@ -27,13 +27,13 @@
     <meta name="twitter:image" content="@image" />
 </HeadContent>
 
-@if (loading.Equals(true))
+@if (loading)
 {
-    <LoadingComponent />
+    <MedbaseComponents.Controls.LoadingComponent Message="Getting the notes from database..." />
 }
 else if (Note == null && loading.Equals(false))
 {
-    <EmptyNotesComponent />
+    <MedbaseComponents.Controls.EmptyNotesComponent />
 }
 else
 {
@@ -43,7 +43,7 @@ else
             <div class="row gx-5 align-items-center justify-content-center">
                 <div class="col-lg-8 col-xl-4 col-xxl-4">
                     <div class="my-5 text-center text-xl-start">
-                        <MudText Typo="Typo.h5" class="display-5 fw-bolder mb-2 text-light">
+                        <MudText Typo="Typo.h1" class="display-5 fw-bolder mb-2 text-light">
                             @Note.Title
                         </MudText>
                         <MudText class="text-light fw-normal mb-4">

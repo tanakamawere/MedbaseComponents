@@ -158,8 +158,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        authenticationState = await authState.GetAuthenticationStateAsync();
-
         client = new AssistantsClient(MedbaseComponents.Shared.Helpers.OpenApiKey);
         assistant = await client.GetAssistantAsync(assistantId);
         thread = await client.CreateThreadAsync();
@@ -232,6 +230,7 @@
 
     private async Task SendOpenAiMessage()
     {
+        _isReceivingResponse = true;
         string? lastMessageId = null;
 
         await client.CreateMessageAsync(thread.Value.Id, MessageRole.User, input);
