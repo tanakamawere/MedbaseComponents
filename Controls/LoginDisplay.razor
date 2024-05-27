@@ -1,11 +1,2 @@
-﻿@using Microsoft.AspNetCore.Components.Authorization
-﻿<AuthorizeView>
-    <Authorized>
-        Hello, @context.User.Identity.Name!
-        <MudNavLink Href="MicrosoftIdentity/Account/EditProfile" Class="btn btn-primary">Edit Profile</MudNavLink>
-        <MudNavLink Href="MicrosoftIdentity/Account/SignOut" Class="btn btn-primary">Log out</MudNavLink>
-    </Authorized>
-    <NotAuthorized>
-        <MudNavLink href="MicrosoftIdentity/Account/SignIn">Log in</MudNavLink>
-    </NotAuthorized>
-</AuthorizeView>
+﻿@using MedbaseLibrary.MsalClient
+@using Microsoft.AspNetCore.Components.Authorization

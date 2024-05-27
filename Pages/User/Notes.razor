@@ -43,9 +43,9 @@
 </header>
 
 <MudContainer Class="mt-5">
-        @if (!_courseNotes.Any())
-        {
-        <LoadingComponent />
+    @if (loading)
+    {
+        <MedbaseComponents.Controls.LoadingComponent Message="Getting notes from the database..." />
     }
     else
     {
