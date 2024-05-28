@@ -29,12 +29,13 @@
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <MudNavMenu Rounded="true" Margin="Margin.Dense" Color="Color.Primary" Class="pa-2">
             <MudNavLink Href="/home" Icon="@Icons.Material.Filled.Dashboard">Home</MudNavLink>
+            <MudNavLink Href="/chat" Icon="@Icons.Material.Filled.Computer">Medbase AI</MudNavLink>
             @* <MudNavLink Href="/pricing" Icon="@Icons.Material.Filled.PriceChange">Pricing</MudNavLink> *@
             
             <MudNavLink Href="/courses" Class="@(IsMaui == true ? "d-block" : "d-none")" Icon="@Icons.Material.Filled.Book">Courses</MudNavLink>
             <MudNavLink Href="/downloads" Class="@(IsMaui == true ? "d-none" : "d-block")" Icon="@Icons.Material.Filled.Download">Downloads</MudNavLink>
             <MudNavLink Href="/notes" Icon="@Icons.Material.Filled.Note">Notes</MudNavLink>
-            <MudNavLink Href="/chat" Icon="@Icons.Material.Filled.Computer">Medbase AI</MudNavLink> 
+            <MudNavLink Href="/essays" Icon="@Icons.Material.Filled.WrapText">Essays</MudNavLink>
             <MudNavLink Href="/articles" Icon="@Icons.Material.Filled.Newspaper">Articles</MudNavLink>
             @* <MudNavLink Href="/Gamma" Icon="@Icons.Material.Filled.Download">Gamma</MudNavLink> *@
             <MudNavLink Href="/about" Icon="@Icons.Material.Filled.QuestionAnswer">About & Contact</MudNavLink>
@@ -62,7 +63,6 @@
                     </AuthorizeView>
                 }
             </MudPaper>
-
         </MudNavMenu>
     </MudDrawer>
     <MudMainContent>

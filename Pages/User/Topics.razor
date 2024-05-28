@@ -59,7 +59,7 @@
                                 </MudCardHeader>
                                 <MudCardActions>
                                     <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToQuestions(item.TopicRef)">Questions</MudButton>
-                                    <MudButton Variant="Variant.Text" Color="Color.Primary" @onclick="() => Download(item)">Download</MudButton>
+                                    @* <MudButton Variant="Variant.Text" Color="Color.Primary" @onclick="() => Download(item)">Download</MudButton> *@
                                 </MudCardActions>
                             </MudCard>
                             @*<div class="card h-100 shadow border-0">
@@ -210,10 +210,5 @@
         {
             navManager.NavigateTo($"/questions/{topicReference}/{source}");
         }
-    }
-
-    private void GoToNotes(int topicReference)
-    {
-        navManager.NavigateTo($"/note/{topicReference}");
     }
 }

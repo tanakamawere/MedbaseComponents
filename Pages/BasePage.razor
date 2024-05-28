@@ -6,11 +6,40 @@
 @inject IApiRepository repository
 @inject IDialogService DialogService
 @inject NavigationManager navManager
+@inject IEssaysRepository essaysRepository
 @inject ISnackbar Snackbar
+
+
+<PageTitle>@Title</PageTitle>
+<HeadContent>
+    <title>@Title</title>
+    <meta name="title" content="@Title" />
+    <meta name="description" content="@Description" />
+
+    <!-- Open Graph / Facebook -->
+    <meta name="og:type" content="website" />
+    <meta name="og:url" content="@navManager.BaseUri" />
+    <meta name="og:title" content="@Title" />
+    <meta name="og:description" content="@Description" />
+    <meta name="og:image" content="@Image" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="@navManager.BaseUri" />
+    <meta name="twitter:title" content="@Title" />
+    <meta name="twitter:description" content="@Description" />
+    <meta name="twitter:image" content="@Image" />
+</HeadContent>
 
 @code {
     [Inject]
     public ICheckForInternet checkForInternet { get; set; }
+    [Parameter]
+    public string Title { get; set; } = "Medbase";
+    [Parameter]
+    public string Description { get; set; } = "Medbase is a platform that helps students to organize their academic life.";
+    [Parameter]
+    public string Image { get; set; } = "img/medbase.png";
 
     public bool CheckIfIsMaui()
     {
