@@ -1,39 +1,37 @@
-﻿@page "/note/{id:int}"
-
+﻿@page "/essays/view/{id:int}"
 
 @using MedbaseLibrary.Models
 @inject IApiRepository repository
-@inject INotesRepository notesRepository
+@inject IEssaysRepository essaysRepository
 @using Markdig
 @inject NavigationManager navManager;
 
-
-<PageTitle>@Note.Title | Medbase</PageTitle>
+<PageTitle>@Essay.Question | Medbase</PageTitle>
 <HeadContent>
-    <title>@Note.Title | Medbase</title>
-    <meta name="title" content="@Note.Title | Medbase" />
-    <meta name="description" content="Read notes on @Note.Title. Dive in" />
+    <title>@Essay.Question | Medbase</title>
+    <meta name="title" content="@Essay.Question | Medbase" />
+    <meta name="description" content="The answers to @Essay.Question. Dive in" />
 
     <!-- Open Graph / Facebook -->
     <meta name="og:type" content="website" />
     <meta name="og:url" content="@navManager.BaseUri" />
-    <meta name="og:title" content="@Note.Title | Medbase" />
-    <meta name="og:description" content="Read notes on @Note.Title. Dive in" />
+    <meta name="og:title" content="@Essay.Question | Medbase" />
+    <meta name="og:description" content="The answers to  @Essay.Question. Dive in" />
     <meta name="og:image" content="@image" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="@navManager.BaseUri" />
-    <meta name="twitter:title" content="@Note.Title | Medbase" />
-    <meta name="twitter:description" content="Read notes on @Note.Title. Dive in" />
+    <meta name="twitter:title" content="@Essay.Question | Medbase" />
+    <meta name="twitter:description" content="The answers to  @Essay.Question. Dive in" />
     <meta name="twitter:image" content="@image" />
 </HeadContent>
 
 @if (loading)
 {
-    <MedbaseComponents.Controls.LoadingComponent Message="Getting the notes from database..." />
+    <MedbaseComponents.Controls.LoadingComponent Message="Getting the essay from database..." />
 }
-else if (Note == null && loading.Equals(false))
+else if (Essay == null && loading.Equals(false))
 {
     <MedbaseComponents.Controls.EmptyNotesComponent />
 }
@@ -46,29 +44,37 @@ else
                 <div class="col-lg-8 col-xl-4 col-xxl-4">
                     <div class="my-5 text-center text-xl-start">
                         <MudText Typo="Typo.h1" class="display-5 fw-bolder mb-2 text-light">
-                            @Note.Title
+                            Essay View
                         </MudText>
                         <MudText class="text-light fw-normal mb-4">
-                            Last Updated: @Note.DateUpdated.ToString("dddd, dd MMMM yyyy") at @Note.DateUpdated.ToString("hh:mm")
+                            Last Updated: @Essay.DateUpdated.ToString("dddd, dd MMMM yyyy") at @Essay.DateUpdated.ToString("hh:mm")
                         </MudText>
                     </div>
                 </div>
                 <div class="col-xl-8 col-xxl-8 text-center">
                     <img class="img-fluid rounded-3 my-5"
-                         src="img/courses.png" alt="..." style="max-height:400px" />
+                         src="img/desk.png" alt="..." style="max-height:400px" />
                 </div>
             </div>
         </div>
     </header>
     <MudContainer>
-        <MudMarkdown Value="@Note.Text" />
+        <MudText Typo="Typo.h2">
+            Question
+        </MudText>
+        <MudMarkdown Value="@Essay.Question" />
+
+        <MudText Typo="Typo.h2">
+            Suggested Answer
+        </MudText>
+        <MudMarkdown Value="@Essay.Answer" />
     </MudContainer>
 }
 
 @code {
     [Parameter]
     public int id { get; set; } = 0;
-    public Note Note { get; set; } = new();
+    public Essay Essay { get; set; } = new();
     public bool loading { get; set; } = true;
 
     protected override async Task OnParametersSetAsync()
@@ -76,12 +82,13 @@ else
         if (id != 0)
         {
             loading = true;
-            Note = await notesRepository.GetNotesById(id);
+            Essay = await essaysRepository.GetEssaysById(id);
             loading = false;
         }
-        else if (id == null)
+        else if (id == 0)
         { return; }
     }
 
     private string image = "https://i.postimg.cc/T1DjN4S5/Logo.png";
 }
+

@@ -245,6 +245,8 @@
                 runResponse = await client.GetRunAsync(thread.Value.Id, run.Value.Id);
             } while (runResponse.Value.Status == RunStatus.Queued || runResponse.Value.Status == RunStatus.InProgress);
 
+
+            Console.WriteLine(runResponse.Value.LastError);
             textField.Clear();
 
             messagesOpenAi = await client.GetMessagesAsync(thread.Value.Id, order: ListSortOrder.Ascending, after: lastMessageId);
@@ -258,6 +260,7 @@
                     Role = message.Role,
                     MessageContents = message.ContentItems
                 });
+                Console.WriteLine(message.ContentItems);
             }
         }
         catch (Exception ex)

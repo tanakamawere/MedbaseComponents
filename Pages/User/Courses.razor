@@ -3,7 +3,7 @@
 
 @if (!CoursesList.Any())
     {
-        <LoadingComponent />
+        <MedbaseComponents.Controls.LoadingComponent Message="Retrieving courses..." />
     }
     else
     {
@@ -21,6 +21,11 @@
                                 @item.Description
                             </MudText>
                         </MudCardContent>
+                        <MudCardActions>
+                        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToTopics(item.CourseRef)">Topics</MudButton>
+                        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToNotes(item.CourseRef)">Notes</MudButton>
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToEssays(item.CourseRef)">Essays</MudButton>
+                        </MudCardActions>
                     </MudCard>
                 </div>
 
@@ -37,5 +42,15 @@
     private void GoToTopics(string courseRef)
     {
         navManager.NavigateTo($"/topics/{courseRef}");
+    }
+
+    private void GoToNotes(string courseReference)
+    {
+        navManager.NavigateTo($"/notes/course/{courseReference}");
+    }
+
+    private void GoToEssays(string courseReference)
+    {
+        navManager.NavigateTo($"/essays/course/{courseReference}");
     }
 }
