@@ -1,4 +1,5 @@
-﻿@using MedbaseLibrary.Models
+﻿@page "/essays/course/{courseRef}"
+@using MedbaseLibrary.Models
 @inject NavigationManager navManager
 @inject IApiRepository repository
 @inject IEssaysRepository essaysRepository
@@ -28,11 +29,8 @@
     <div class="container my-5">
         <div class="row p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-3 border shadow-lg">
             <div class="col-lg-7 p-3 p-lg-5 pt-lg-3">
-                <MudText Typo="Typo.h2" class="display-5 fw-bolder mb-2">
-                    @courseTopicEssayDtos.Course Essays
-                </MudText>
-                <MudText class="fw-normal mb-4">
-                    @description
+                <MudText Typo="Typo.h1" class="display-5 fw-bolder mb-2">
+                    @courseRef Essays📝
                 </MudText>
             </div>
             <div class="col-lg-4 offset-lg-1 m-5">
@@ -43,29 +41,36 @@
 </header>
 
 <MudContainer Class="mt-5">
-    @if (loading)
+    @if (isLoading)
     {
         <MedbaseComponents.Controls.LoadingComponent Message="Getting essays from the database..." />
     }
+    else if (essays.Count.Equals(0) && isLoading.Equals(false))
     {
         <MedbaseComponents.Controls.EmptyNotesComponent />
     }
     else
     {
         <div class="row gx-5">
+            <Virtualize Items="essays" Context="essays" TItem="Essay">
                 <ItemContent>
                     <div class="col-lg-4 mb-5">
                         <MudCard>
-                            <MudCardMedia Image="@courseEssays.CourseImage" Height="100" />
                             <MudCardHeader>
                                 <CardHeaderContent>
+                                    <div class="row">
+                                        <div class="col-1">
+                                            @essays.Id
+                                        </div> 
+                                        <div class="col-11">
+                                            <MudMarkdown Value="@essays.Question" />
+                                        </div>
+                                    </div>
                                 </CardHeaderContent>
                             </MudCardHeader>
-                            <MudCardContent>
-                                {
-                                    </MudPaper>
-                                }
-                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton Color="Color.Primary" OnClick="@(() => GoTo(essays.Id))">Suggested Answer</MudButton>
+                            </MudCardActions>
                         </MudCard>
                     </div>
                 </ItemContent>
@@ -75,18 +80,23 @@
 </MudContainer>
 
 @code {
-    private bool loading = true;
+    [Parameter]
+    public string courseRef { get; set; } = "";
+    private List<Essay> essays = new();
 
-    private string description = "Medbase essays are a convenient and effective way to study for medical school exams. A summary of key slides and high yield information. Dive in!";
+    private string description = "Medbase essays are a convenient and effective way to study for medical school exams.";
     private string title = "Essays | Medbase";
     private string image = "https://i.postimg.cc/T1DjN4S5/Logo.png";
 
+    private bool isLoading = true;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        loading = true;
-        loading = false;
+        isLoading = true;
+        essays = await essaysRepository.GetEssaysByCourse(courseRef);
+        isLoading = false;
     }
+
     private void GoTo(int id)
     {
         navManager.NavigateTo($"/essays/view/{id}");
