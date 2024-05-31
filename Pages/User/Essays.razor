@@ -1,4 +1,5 @@
-﻿@using MedbaseLibrary.Models
+﻿@page "/essays/{courseRef}"
+@using MedbaseLibrary.Models
 @inject NavigationManager navManager
 @inject IApiRepository repository
 @inject IEssaysRepository essaysRepository
@@ -47,22 +48,27 @@
     {
         <MedbaseComponents.Controls.LoadingComponent Message="Getting essays from the database..." />
     }
+    else if (courseTopicEssayDtos.TopicEssayDto.Count == 0 && loading.Equals(false))
     {
         <MedbaseComponents.Controls.EmptyNotesComponent />
     }
     else
     {
         <div class="row gx-5">
+            <Virtualize Items="courseTopicEssayDtos.TopicEssayDto" Context="courseEssays" TItem="TopicEssayDto">
                 <ItemContent>
                     <div class="col-lg-4 mb-5">
                         <MudCard>
-                            <MudCardMedia Image="@courseEssays.CourseImage" Height="100" />
                             <MudCardHeader>
                                 <CardHeaderContent>
+                                    <MudText Typo="Typo.h4">@courseEssays.Topic</MudText>
                                 </CardHeaderContent>
                             </MudCardHeader>
                             <MudCardContent>
+                                @foreach (var essay in courseEssays.Essays)
                                 {
+                                    <MudPaper @onclick="@(() => GoTo(essay.Id))" Class="p-1">
+                                        <MudMarkdown Value="@essay.Question" />
                                     </MudPaper>
                                 }
                             </MudCardContent>
@@ -75,6 +81,9 @@
 </MudContainer>
 
 @code {
+    [Parameter]
+    public string courseRef { get; set; }
+    private CourseTopicEssayDto courseTopicEssayDtos = new();
     private bool loading = true;
 
     private string description = "Medbase essays are a convenient and effective way to study for medical school exams. A summary of key slides and high yield information. Dive in!";
@@ -85,6 +94,7 @@
     protected override async Task OnInitializedAsync()
     {
         loading = true;
+        courseTopicEssayDtos = await essaysRepository.GetEssaysByCourse(courseRef);
         loading = false;
     }
     private void GoTo(int id)
