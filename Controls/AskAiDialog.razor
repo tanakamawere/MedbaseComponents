@@ -43,13 +43,13 @@
                     }
                     else
                     {
-                        @if (string.IsNullOrWhiteSpace(aiAnswer))
+                        @if (string.IsNullOrWhiteSpace(aiAnswerStringBuilder.ToString()))
                         {
                             <MudText>Your answer will appear here</MudText>
                         }
                         else
                         {
-                            <MudMarkdown Value="@aiAnswer" />
+                            <MudMarkdown Value="@aiAnswerStringBuilder.ToString()" />
                             <div>
                                 <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" />
                                 Medbase AI
@@ -81,9 +81,9 @@
     public string child { get; set; } = "";
     [Parameter]
     public bool answer { get; set; }
-    public string aiAnswer { get; set; } = "";
     private string question = "";
     private bool isLoading = false;
+    private StringBuilder aiAnswerStringBuilder = new();
     private bool isSubscribed = false;
     private bool limitIsReached = false;
     private int usageCount = 0;
@@ -158,21 +158,20 @@
             };
 
             // This is the non-streaming version of the API
-            Response<ChatCompletions> response = await client.GetChatCompletionsAsync(chatCompletionsOptions);
-            //Get first answer from the choices
-            aiAnswer = response.Value.Choices[0].Message.Content;
+            // Response<ChatCompletions> response = await client.GetChatCompletionsAsync(chatCompletionsOptions);
+            // aiAnswer = response.Value.Choices[0].Message.Content;
 
-            // This is the streaming version of the API
-            // await foreach (StreamingChatCompletionsUpdate item in client.GetChatCompletionsStreaming(chatCompletionsOptions))
-            // {
-            //     if (!string.IsNullOrEmpty(item.ContentUpdate))
-            //     {
-            //         isLoading = false;
-            //         var aiAnswerStringBuilder = new StringBuilder();
-            //         aiAnswerStringBuilder.Append(item.ContentUpdate);
-            //         aiAnswer = aiAnswerStringBuilder.ToString();
-            //     }
-            // }
+            //This is the streaming version of the API
+            await foreach (StreamingChatCompletionsUpdate item in client.GetChatCompletionsStreaming(chatCompletionsOptions))
+            {
+                if (!string.IsNullOrEmpty(item.ContentUpdate))
+                {
+                    isLoading = false;
+                    aiAnswerStringBuilder.Append(item.ContentUpdate);
+                    StateHasChanged();
+                    await Task.Delay(100);
+                }
+            }
         }
         catch (Exception ex)
         {

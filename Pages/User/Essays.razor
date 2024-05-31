@@ -1,4 +1,4 @@
-﻿@page "/essays"
+﻿@page "/essays/{courseRef}"
 @using MedbaseLibrary.Models
 @inject NavigationManager navManager
 @inject IApiRepository repository
@@ -30,7 +30,7 @@
         <div class="row p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-3 border shadow-lg">
             <div class="col-lg-7 p-3 p-lg-5 pt-lg-3">
                 <MudText Typo="Typo.h2" class="display-5 fw-bolder mb-2">
-                    Essays
+                    @courseTopicEssayDtos.Course Essays
                 </MudText>
                 <MudText class="fw-normal mb-4">
                     @description
@@ -48,29 +48,27 @@
     {
         <MedbaseComponents.Controls.LoadingComponent Message="Getting essays from the database..." />
     }
-    else if (courseEssays.Count == 0 && loading.Equals(false))
+    else if (courseTopicEssayDtos.TopicEssayDto.Count == 0 && loading.Equals(false))
     {
         <MedbaseComponents.Controls.EmptyNotesComponent />
     }
     else
     {
         <div class="row gx-5">
-            <Virtualize Items="courseEssays" Context="courseEssays" TItem="CourseEssayDto">
+            <Virtualize Items="courseTopicEssayDtos.TopicEssayDto" Context="courseEssays" TItem="TopicEssayDto">
                 <ItemContent>
                     <div class="col-lg-4 mb-5">
                         <MudCard>
-                            <MudCardMedia Image="@courseEssays.CourseImage" Height="100" />
                             <MudCardHeader>
                                 <CardHeaderContent>
-                                    <MudText Typo="Typo.h5">@courseEssays.Course</MudText>
+                                    <MudText Typo="Typo.h4">@courseEssays.Topic</MudText>
                                 </CardHeaderContent>
                             </MudCardHeader>
                             <MudCardContent>
-                                @foreach (var topic in courseEssays.Essays)
+                                @foreach (var essay in courseEssays.Essays)
                                 {
-                                    <MudPaper Class="p-3">
-                                        <MudMarkdown Value="@topic.Question" />
-                                        <MudButton Color="Color.Primary" OnClick="@(() => GoTo(topic.Id))">View</MudButton>
+                                    <MudPaper @onclick="@(() => GoTo(essay.Id))" Class="p-1">
+                                        <MudMarkdown Value="@essay.Question" />
                                     </MudPaper>
                                 }
                             </MudCardContent>
@@ -83,7 +81,9 @@
 </MudContainer>
 
 @code {
-    private List<CourseEssayDto> courseEssays = new();
+    [Parameter]
+    public string courseRef { get; set; }
+    private CourseTopicEssayDto courseTopicEssayDtos = new();
     private bool loading = true;
 
     private string description = "Medbase essays are a convenient and effective way to study for medical school exams. A summary of key slides and high yield information. Dive in!";
@@ -94,7 +94,7 @@
     protected override async Task OnInitializedAsync()
     {
         loading = true;
-        courseEssays = await essaysRepository.GetEssaysWithCoursesAsync();
+        courseTopicEssayDtos = await essaysRepository.GetEssaysByCourse(courseRef);
         loading = false;
     }
     private void GoTo(int id)

@@ -1,4 +1,4 @@
-﻿@page "/essays/course/{courseRef}"
+﻿@page "/essays/topic/{topicRef:int}"
 @using MedbaseLibrary.Models
 @inject NavigationManager navManager
 @inject IApiRepository repository
@@ -30,7 +30,7 @@
         <div class="row p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-3 border shadow-lg">
             <div class="col-lg-7 p-3 p-lg-5 pt-lg-3">
                 <MudText Typo="Typo.h1" class="display-5 fw-bolder mb-2">
-                    @courseRef Essays📝
+                    @topicEssayDto.Topic Essays📝
                 </MudText>
             </div>
             <div class="col-lg-4 offset-lg-1 m-5">
@@ -45,14 +45,14 @@
     {
         <MedbaseComponents.Controls.LoadingComponent Message="Getting essays from the database..." />
     }
-    else if (essays.Count.Equals(0) && isLoading.Equals(false))
+    else if (topicEssayDto.Essays.Count.Equals(0) && isLoading.Equals(false))
     {
         <MedbaseComponents.Controls.EmptyNotesComponent />
     }
     else
     {
         <div class="row gx-5">
-            <Virtualize Items="essays" Context="essays" TItem="Essay">
+            <Virtualize Items="topicEssayDto.Essays" Context="essays" TItem="Essay">
                 <ItemContent>
                     <div class="col-lg-4 mb-5">
                         <MudCard>
@@ -81,8 +81,8 @@
 
 @code {
     [Parameter]
-    public string courseRef { get; set; } = "";
-    private List<Essay> essays = new();
+    public int topicRef { get; set; } = 0;
+    private TopicEssayDto topicEssayDto = new();
 
     private string description = "Medbase essays are a convenient and effective way to study for medical school exams.";
     private string title = "Essays | Medbase";
@@ -93,7 +93,7 @@
     protected override async Task OnParametersSetAsync()
     {
         isLoading = true;
-        essays = await essaysRepository.GetEssaysByCourse(courseRef);
+        topicEssayDto = await essaysRepository.GetEssaysByTopic(topicRef);
         isLoading = false;
     }
 
