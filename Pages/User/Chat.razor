@@ -1,6 +1,7 @@
 ﻿@page "/chat"
 
 @using Azure
+@using Azure.AI.OpenAI
 @using Azure.AI.OpenAI.Assistants
 @using MedbaseComponents.Controls
 @using MedbaseLibrary.Helpers
@@ -107,7 +108,7 @@
         <MudTextField @bind-Value="@input" Label="Text"
                       Variant="Variant.Outlined"
                       AdornmentColor="Color.Secondary" AutoFocus="true"
-                      Placeholder="Ask Medbase AI..." Lines="3"
+                      Placeholder="Ask Medbase AI..." Lines="1"
                       IconSize="Size.Large"
                       Class="w-100 mx-lg-5"
                       AdornmentIcon="@Icons.Material.Filled.Send"
@@ -147,6 +148,7 @@
     private bool limitIsReached = false;
     private string threadIdCache = "";
     private string assistantId = "asst_nieOwRIDpnN3IGAyO0epHXN2";
+    private OpenAIClient openAIClient;
 
 
     //AI things
@@ -155,11 +157,13 @@
     private Response<AssistantThread> thread; 
     private Response<PageableList<ThreadMessage>> messagesOpenAi;
     private List<AiChat> AiChats = [];
+    private List<ChatResponseMessage> chatMessages = [];
 
     protected override async Task OnInitializedAsync()
     {
         client = new AssistantsClient(MedbaseComponents.Shared.Helpers.OpenApiKey);
         assistant = await client.GetAssistantAsync(assistantId);
+        openAIClient = new OpenAIClient(MedbaseComponents.Shared.Helpers.OpenApiKey);
         thread = await client.CreateThreadAsync();
     }
 
@@ -262,6 +266,44 @@
                 });
                 Console.WriteLine(message.ContentItems);
             }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error is here?: {ex}");
+            //Notify user that somethng went wrong
+            snackbar = Snackbar.Add("Something went totally wrong. Please contact us or please try later.", Severity.Info);
+        }
+        finally
+        {
+            _isReceivingResponse = false;
+            StateHasChanged();
+        }
+    }
+
+    private async void ProperAiChat()
+    {
+        _isReceivingResponse = true;
+
+        try
+        {
+
+            var chatCompletionsOptions = new ChatCompletionsOptions
+            {
+                DeploymentName = "gpt-3.5-turbo",
+                Messages = 
+                {
+                },
+                MaxTokens = 2000
+            };
+
+            Response<ChatCompletions> response = await openAIClient.GetChatCompletionsAsync(chatCompletionsOptions);
+
+            var message = response.Value.Choices[0].Message;
+
+
+
+            Console.WriteLine(message.Content);
+
         }
         catch (Exception ex)
         {

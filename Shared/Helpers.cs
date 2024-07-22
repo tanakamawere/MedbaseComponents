@@ -9,5 +9,5 @@ public class Helpers
         _ = Snackbar.Add(message, severity);
     }
 
-    public const string OpenApiKey = "sk-proj-rJCSNndhW715qZ0QEZckT3BlbkFJcmdMls4PigQwu44bao1R";
+    public const string OpenApiKey = "";
 }
