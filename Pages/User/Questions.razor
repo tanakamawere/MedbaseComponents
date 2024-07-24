@@ -254,7 +254,7 @@
             var dialog = await DialogService.ShowAsync<SearchQuestionsDialog>("Search Questions", parameters, options);
             var result = await dialog.Result;
 
-            if (!result.Cancelled)
+            if (!result.Canceled)
             {
                 searchTerm = result.Data.ToString();
                 isLoading = true;

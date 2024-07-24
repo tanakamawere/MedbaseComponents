@@ -93,7 +93,9 @@
     protected override async Task OnParametersSetAsync()
     {
         isLoading = true;
-        essays = await essaysRepository.GetEssaysByCourse(courseRef);
+        var essaysByCourse = await essaysRepository.GetEssaysByCourse(courseRef);
+        var topicEssays = essaysByCourse.TopicEssayDto;
+        
         isLoading = false;
     }
 

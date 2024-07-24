@@ -6,17 +6,17 @@
         <EditForm OnSubmit="PostCorrection" Model="Corrections">
             <MudText>Which stem?</MudText>
             <input hidden @bind-value="Corrections.Id"/>
-            <MudRadioGroup @bind-SelectedOption="Corrections.QuestionChild">
-                <MudRadio Option="@("A")" Color="Color.Primary">a</MudRadio>
-                <MudRadio Option="@("B")" Color="Color.Primary">b</MudRadio>
-                <MudRadio Option="@("C")" Color="Color.Primary">c</MudRadio>
-                <MudRadio Option="@("D")" Color="Color.Primary">d</MudRadio>
-                <MudRadio Option="@("E")" Color="Color.Primary">e</MudRadio>
+            <MudRadioGroup @bind-SelectedOption="Corrections.QuestionChild" T="string">
+                <MudRadio Value="@("A")" Color="Color.Primary">a</MudRadio>
+                <MudRadio Value="@("B")" Color="Color.Primary">b</MudRadio>
+                <MudRadio Value="@("C")" Color="Color.Primary">c</MudRadio>
+                <MudRadio Value="@("D")" Color="Color.Primary">d</MudRadio>
+                <MudRadio Value="@("E")" Color="Color.Primary">e</MudRadio>
             </MudRadioGroup>
             <MudText>Suggested Answer</MudText>
-            <MudRadioGroup @bind-SelectedOption="Corrections.SuggestedAnswer">
-                <MudRadio Option="true" Color="Color.Primary">True</MudRadio>
-                <MudRadio Option="false" Color="Color.Primary">False</MudRadio>
+            <MudRadioGroup @bind-SelectedOption="Corrections.SuggestedAnswer" T="bool">
+                <MudRadio Value="true" Color="Color.Primary">True</MudRadio>
+                <MudRadio Value="false" Color="Color.Primary">False</MudRadio>
             </MudRadioGroup>
             <MudTextField T="string" Label="Suggested Explanation" @bind-Value="Corrections.SuggestedExplanation"></MudTextField>
             <button type="submit" class="btn btn-primary m-2">Save</button>
