@@ -1,13 +1,17 @@
 ﻿@page "/signin"
 
 @layout AuthLayout
-@inject IAuthService authService
-@using System.ComponentModel.DataAnnotations
-@inject NavigationManager NavigationManager
+@using MedbaseComponents.Controls
+@using System.Security.Claims
+@using MedbaseComponents.Shared
 @using MedbaseLibrary.Helpers
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.ComponentModel.DataAnnotations
+@inject IAuthService authService
+@inject NavigationManager NavigationManager
 @inject IAuthMemory authMemory
-@using MedbaseComponents.Controls
+@inject AuthenticationStateProvider authStateProvider
 @inject ISnackbar Snackbar
 
 <PageTitle>@title</PageTitle>
@@ -86,7 +90,8 @@
 </div> 
 
 @code {
-
+    [CascadingParameter] 
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
     //SEO
     private string description = "Create an account today to use Medbase AI and more";
     private string title = "Sign Up | Medbase";
@@ -103,7 +108,7 @@
     private bool signInFailed = false;
     private Snackbar snackbar;
 
-    private AuthenticationRequest? User { get; set; } = new();
+    private SignInRequest? User { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -118,12 +123,15 @@
             if (result.IsSuccess)
             {
                 AuthenticationResponse response = result.Data as AuthenticationResponse;
-                authMemory.StoreToken(Helpers.AuthMemory, response.Token);
-                Console.WriteLine(response.Token);
+
+                authMemory.StoreToken(MedbaseLibrary.Helpers.Helpers.AuthMemoryName, response.Token);
+
+                ((CommonAuthStateProvider)authStateProvider).MarkUserAsAuthenticated(response.Token);
                 NavigationManager.NavigateTo("/home", true);
             }
             else
             {
+                Console.WriteLine(result.Message);
                 errorMessage = result.Message;
                 signInFailed = true;
                 snackbar = Snackbar.Add(result.Message, Severity.Info);

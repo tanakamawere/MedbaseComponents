@@ -60,6 +60,7 @@
                             </Authorized>
                             <NotAuthorized>
                                 <MudNavLink OnClick="() => OnLoginClicked()">Log in</MudNavLink>
+                                <MudNavLink OnClick="() => OnSignUpClicked()">Sign Up</MudNavLink>
                             </NotAuthorized>
                         </AuthorizeView>
                     </CascadingAuthenticationState>
@@ -134,47 +135,35 @@
         StateHasChanged();
     }
 
-    private async void OnLoginClicked()
+    private void OnLoginClicked()
     {
         isBusy = true;
         try
         {
-            // Attempt silent login, and obtain access token.
-            var result = await _pcaWrapper.AcquireTokenSilentAsync(_pcaWrapper.Scopes).ConfigureAwait(false);
-
-            // Set access token.
-            GlobalValues.AccessToken = result?.AccessToken;
-            if (GlobalValues.AccessToken != null)
-            {
-                isLoggedIn = true;
-                snackbar = Snackbar.Add("You are now signed in!", Severity.Success);
-            }
+            navManager.NavigateTo("/signin");
         } 
-        // A MsalUiRequiredException will be thrown, if this is the first attempt to login, or after logging out.
-        catch (MsalUiRequiredException)
-        {
-            try
-            {
-                // Perform interactive login, and obtain access token.
-                var result = await _pcaWrapper.AcquireTokenInteractiveAsync(_pcaWrapper?.Scopes).ConfigureAwait(false);
-
-                // Set access token.
-                GlobalValues.AccessToken = result?.AccessToken;
-                if (GlobalValues.AccessToken != null)
-                {
-                    isLoggedIn = true;
-                    snackbar = Snackbar.Add("You are now signed in!", Severity.Success);
-                }
-            }
-            catch (Exception ex)
-            {
-                // Ignore.
-            }
-        }
         catch (Exception ex)
         {
             Console.WriteLine(ex);
             snackbar = Snackbar.Add("An error occurred while signing in. Please try again.", Severity.Error);
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    private void OnSignUpClicked()
+    {
+        isBusy = true;
+        try
+        {
+            navManager.NavigateTo("/signup");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            snackbar = Snackbar.Add("An error occurred while signing up. Please try again.", Severity.Error);
         }
         finally
         {

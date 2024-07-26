@@ -79,15 +79,13 @@
             if (response.IsSuccess)
             {
                 AuthenticationResponse authResponse = response.Data as AuthenticationResponse;
-                authMemory.StoreToken(Helpers.AuthMemory, authResponse.Token);
+                authMemory.StoreToken(Helpers.AuthMemoryName, authResponse.Token);
 
                 //Auth token is the JWT token. I need to get user id from the token.
 
                 var userIdClaim = Helpers.GetUserIdFromToken(authResponse.Token.ToString());
 
                 Console.WriteLine(userIdClaim);
-
-
 
                 NavigationManager.NavigateTo($"/home/{userIdClaim}", true);
             }
