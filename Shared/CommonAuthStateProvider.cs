@@ -1,42 +1,37 @@
 ﻿using MedbaseLibrary.Helpers;
-using MedbaseLibrary.MsalClient;
 using MedbaseLibrary.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text.Json;
 
 namespace MedbaseComponents.Shared;
 
 public class CommonAuthStateProvider : AuthenticationStateProvider
 {
     private IAuthMemory authMemory;
+    private ClaimsPrincipal _anonymous = new ClaimsPrincipal(new ClaimsIdentity());
     public CommonAuthStateProvider(IAuthMemory auth)
     {
         authMemory = auth;
     }
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        string token = "";
-        AuthenticationState result = new(new ClaimsPrincipal(new ClaimsIdentity()));
         try
         {
-            //token = authMemory.GetToken().Result;
+            string token = authMemory.IsSuccess().Result ? await authMemory.GetToken() : null;
+
             if (string.IsNullOrEmpty(token))
             {
-                return result;
+                return await Task.FromResult(new AuthenticationState(_anonymous));
             }
-            else
-            {
-                result = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(TokenToClaims(token), "JwtBearer")));
-            }
+
+            var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(TokenToClaims(token), "JwtBearer"));
+            return await Task.FromResult(new AuthenticationState(claimsPrincipal));
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            return await Task.FromResult(new AuthenticationState(_anonymous));
         }
-
-        return result;
     }
 
     private IEnumerable<Claim> TokenToClaims(string token)
@@ -50,18 +45,23 @@ public class CommonAuthStateProvider : AuthenticationStateProvider
 
         return claims;
     }
-
-    public void MarkUserAsAuthenticated(string token)
+    public async Task UpdateAuthenticationState(string token)
     {
-        var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(TokenToClaims(token), "JwtBearer"));
-        var authState = Task.FromResult(new AuthenticationState(authenticatedUser));
-        NotifyAuthenticationStateChanged(authState);
+        ClaimsPrincipal claimsPrincipal;
 
-    }
+        if (token != null)
+        {
+            //User has logged in
+            await authMemory.StoreToken(MedbaseLibrary.Helpers.Helpers.AuthMemoryName, token);
+            claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(TokenToClaims(token), "JwtBearer"));
+        }
+        else
+        {
+            //User has logged out
+            await authMemory.RemoveToken(MedbaseLibrary.Helpers.Helpers.AuthMemoryName);
+            claimsPrincipal = _anonymous;
+        }
 
-    public void NotifyUserAuthentication(ClaimsPrincipal user)
-    {
-        var authState = Task.FromResult(new AuthenticationState(user));
-        NotifyAuthenticationStateChanged(authState);
+        NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(claimsPrincipal)));
     }
 }

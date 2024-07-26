@@ -124,9 +124,12 @@
             {
                 AuthenticationResponse response = result.Data as AuthenticationResponse;
 
-                authMemory.StoreToken(MedbaseLibrary.Helpers.Helpers.AuthMemoryName, response.Token);
+                await authMemory.StoreToken(MedbaseLibrary.Helpers.Helpers.AuthMemoryName, response.Token);
 
-                ((CommonAuthStateProvider)authStateProvider).MarkUserAsAuthenticated(response.Token);
+                var customAuthStateProvider = (CommonAuthStateProvider)authStateProvider;
+
+                await customAuthStateProvider.UpdateAuthenticationState(response.Token);
+
                 NavigationManager.NavigateTo("/home", true);
             }
             else

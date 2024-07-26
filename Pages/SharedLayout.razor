@@ -6,7 +6,6 @@
 @inherits LayoutComponentBase
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
-@inject IPCAWrapper _pcaWrapper;
 @inject IConfiguration _configuration
 @inject NavigationManager navManager
 @inject ISnackbar Snackbar
@@ -55,12 +54,11 @@
                     <CascadingAuthenticationState>
                         ﻿<AuthorizeView>
                             <Authorized>
-                                <MudNavLink OnClick="() => OnLogoutClicked()">Log out</MudNavLink>
-                                <MudText>Logged in as: @UserName</MudText>
+                                <MudNavLink Href="Account/Logout">Log out</MudNavLink>
+                                <MudNavLink Href="/profile">Hello @UserName</MudNavLink>
                             </Authorized>
                             <NotAuthorized>
-                                <MudNavLink OnClick="() => OnLoginClicked()">Log in</MudNavLink>
-                                <MudNavLink OnClick="() => OnSignUpClicked()">Sign Up</MudNavLink>
+                                <MudNavLink Href="Account/Login">Log in</MudNavLink>
                             </NotAuthorized>
                         </AuthorizeView>
                     </CascadingAuthenticationState>
@@ -78,11 +76,16 @@
     private Snackbar snackbar;
     private string UserName = "";
     private bool IsMaui;
-    private AuthenticationState authenticationState { get; set; }
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationState { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        authenticationState = await authStateProvider.GetAuthenticationStateAsync();
+        if (authenticationState is not null)
+        {
+            var state = await authenticationState;
+            UserName = state?.User?.Identity?.Name ?? string.Empty;
+        }
         CheckPlatform();
     }
 
@@ -133,49 +136,5 @@
     {
         _isDarkMode = newValue;
         StateHasChanged();
-    }
-
-    private void OnLoginClicked()
-    {
-        isBusy = true;
-        try
-        {
-            navManager.NavigateTo("/signin");
-        } 
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex);
-            snackbar = Snackbar.Add("An error occurred while signing in. Please try again.", Severity.Error);
-        }
-        finally
-        {
-            isBusy = false;
-        }
-    }
-
-    private void OnSignUpClicked()
-    {
-        isBusy = true;
-        try
-        {
-            navManager.NavigateTo("/signup");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex);
-            snackbar = Snackbar.Add("An error occurred while signing up. Please try again.", Severity.Error);
-        }
-        finally
-        {
-            isBusy = false;
-        }
-    }
-
-    private async void OnLogoutClicked()
-    {
-        await _pcaWrapper.SignOutAsync().ConfigureAwait(false);
-        GlobalValues.AccessToken = null;
-        isLoggedIn = false;
-        snackbar = Snackbar.Add("You are now signed out!", Severity.Success);
     }
 }

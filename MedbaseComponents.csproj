@@ -23,6 +23,7 @@
   </PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Auth0.AspNetCore.Authentication" Version="1.4.1" />
 		<PackageReference Include="Markdig" Version="0.37.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.7" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.7" />
@@ -38,9 +39,6 @@
 	  <ProjectReference Include="..\MedbaseLibrary\MedbaseLibrary.csproj" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Content Update="Controls\LoginDisplay.razor">
-	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-	  </Content>
 	  <Content Update="wwwroot\css\common.css">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </Content>
