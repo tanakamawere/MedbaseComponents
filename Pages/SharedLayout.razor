@@ -1,16 +1,14 @@
 ﻿@using MedbaseComponents.Controls
 @using MedbaseLibrary.Helpers
-@using MedbaseLibrary.MsalClient
-@using Microsoft.Identity.Client
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.Extensions.Configuration
 @inherits LayoutComponentBase
-@using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 @inject IConfiguration _configuration
 @inject NavigationManager navManager
 @inject ISnackbar Snackbar
 @inject IPlatformInfoService _platformInfoService
-@inject AuthenticationStateProvider authStateProvider
+
 
 <PageTitle>Medbase | Medical School MCQs</PageTitle>
 
@@ -60,6 +58,9 @@
                             <NotAuthorized>
                                 <MudNavLink Href="Account/Login">Log in</MudNavLink>
                             </NotAuthorized>
+                            <Authorizing>
+                                <MudSkeleton />
+                            </Authorizing>
                         </AuthorizeView>
                     </CascadingAuthenticationState>
                 }

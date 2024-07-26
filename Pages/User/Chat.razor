@@ -5,14 +5,11 @@
 @using Azure.AI.OpenAI.Assistants
 @using MedbaseComponents.Controls
 @using MedbaseLibrary.Helpers
-
 @using System.Net.Http.Json
 @using System.ComponentModel.DataAnnotations
 @using System.Text.Json
-@using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 @using static MedbaseLibrary.Helpers.Helpers
-@inject AuthenticationStateProvider authState
 @inject ISnackbar Snackbar
 @inject IApiRepository apiRepository
 @inject NavigationManager NavigationManager
@@ -142,7 +139,6 @@
     private ElementReference scrollContainer;
     private bool _isReceivingResponse = false;
     private Snackbar snackbar;
-    private AuthenticationState authenticationState;
     private bool isSubscribed;
     private SubscriptionStatus subscriptionStatus;
     private bool limitIsReached = false;
@@ -175,62 +171,62 @@
         }
     }
 
-    private async Task UpdateAICredits()
-    {
-        //Check if subscription status is premium
-        switch (subscriptionStatus)
-        {
-            case SubscriptionStatus.PremiumUser:
-                usageIndicator = subscriptionStatus.ToString();
-                break;
-            case SubscriptionStatus.LimitReached:
-                usageIndicator = subscriptionStatus.ToString();
-                break;
-            case SubscriptionStatus.FreeUser:
-                usageIndicator = $"{await apiRepository.GetUserUsageCount(authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value)} / {Helpers.MaxFreeAIUsage} free daily AI credits left";
-                break;
-            default:
-                usageIndicator = "";
-                break;
-        }
-    }
+    // private async Task UpdateAICredits()
+    // {
+    //     //Check if subscription status is premium
+    //     switch (subscriptionStatus)
+    //     {
+    //         case SubscriptionStatus.PremiumUser:
+    //             usageIndicator = subscriptionStatus.ToString();
+    //             break;
+    //         case SubscriptionStatus.LimitReached:
+    //             usageIndicator = subscriptionStatus.ToString();
+    //             break;
+    //         case SubscriptionStatus.FreeUser:
+    //             usageIndicator = $"{await apiRepository.GetUserUsageCount(authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value)} / {Helpers.MaxFreeAIUsage} free daily AI credits left";
+    //             break;
+    //         default:
+    //             usageIndicator = "";
+    //             break;
+    //     }
+    // }
 
-    private async Task CheckForSubscriptionUsageStatus()
-    {
-        if (!string.IsNullOrWhiteSpace(input))
-        {
-            _isReceivingResponse = true;
+    // private async Task CheckForSubscriptionUsageStatus()
+    // {
+    //     if (!string.IsNullOrWhiteSpace(input))
+    //     {
+    //         _isReceivingResponse = true;
 
-            isSubscribed = bool.Parse(authenticationState.User.Claims.FirstOrDefault(c => c.Type == CustomClaimTypes.SubscriptionActive).Value);
+    //         isSubscribed = bool.Parse(authenticationState.User.Claims.FirstOrDefault(c => c.Type == CustomClaimTypes.SubscriptionActive).Value);
 
-            subscriptionStatus = await Helpers.CheckForSubscriptionStatus(apiRepository, isSubscribed, authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
+    //         subscriptionStatus = await Helpers.CheckForSubscriptionStatus(apiRepository, isSubscribed, authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
 
-            if (subscriptionStatus.Equals(SubscriptionStatus.LimitReached))
-            {
-                //Limit has been reached
-                subscriptionStatus = SubscriptionStatus.LimitReached;
-                limitIsReached = true;
-                StateHasChanged();
-            }
-            else if (subscriptionStatus.Equals(SubscriptionStatus.PremiumUser))
-            {
-                subscriptionStatus = SubscriptionStatus.PremiumUser;
-                //await SendMessage();
-                await SendOpenAiMessage();
-            }
-            else
-            {
-                subscriptionStatus = SubscriptionStatus.FreeUser;
-                //await SendMessage();
-                await SendOpenAiMessage();
-            }
-        }
-        else
-        {
-            textField.Error = true;
-            textField.ErrorText = "Please enter a message";
-        }
-    }
+    //         if (subscriptionStatus.Equals(SubscriptionStatus.LimitReached))
+    //         {
+    //             //Limit has been reached
+    //             subscriptionStatus = SubscriptionStatus.LimitReached;
+    //             limitIsReached = true;
+    //             StateHasChanged();
+    //         }
+    //         else if (subscriptionStatus.Equals(SubscriptionStatus.PremiumUser))
+    //         {
+    //             subscriptionStatus = SubscriptionStatus.PremiumUser;
+    //             //await SendMessage();
+    //             await SendOpenAiMessage();
+    //         }
+    //         else
+    //         {
+    //             subscriptionStatus = SubscriptionStatus.FreeUser;
+    //             //await SendMessage();
+    //             await SendOpenAiMessage();
+    //         }
+    //     }
+    //     else
+    //     {
+    //         textField.Error = true;
+    //         textField.ErrorText = "Please enter a message";
+    //     }
+    // }
 
     private async Task SendOpenAiMessage()
     {
