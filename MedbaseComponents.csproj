@@ -27,7 +27,6 @@
 		<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.7" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.7" />
 		<PackageReference Include="MudBlazor" Version="7.4.0" />
-		
 		<PackageReference Include="MudBlazor.Markdown" Version="1.0.2" />
 	</ItemGroup>
 	<ItemGroup>
