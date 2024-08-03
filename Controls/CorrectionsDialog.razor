@@ -45,16 +45,16 @@
         bool response = await repository.PostCorrection(Corrections);
 
         if (response is true)
-            ShowSnackbar("Thanks for the correction. It will be reviewed by our team shortly");
+            ShowSnackbar("Thanks for the correction. It will be reviewed by our team shortly", Severity.Success);
         else
-            ShowSnackbar("Oops, something didn't go well. Please try again later.");
+            ShowSnackbar("Oops, something didn't go well. Please try again later.", Severity.Warning);
 
         Close();
     }
 
-    void ShowSnackbar(string message)
+    void ShowSnackbar(string message, Severity severity)
     {
-        snackbar = Snackbar.Add(message, Severity.Success);
+        snackbar = Snackbar.Add(message, severity);
     }
 
     void Close() => MudDialog.Close();

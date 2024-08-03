@@ -44,6 +44,9 @@
 	<ItemGroup>
 	  <PackageReference Update="Microsoft.Maui.Essentials" Version="8.0.70" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Pages\Questions2\" />
+	</ItemGroup>
 
 
 

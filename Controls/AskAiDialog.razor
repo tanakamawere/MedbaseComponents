@@ -12,67 +12,74 @@
 @using System.Text
 @using static MedbaseLibrary.Helpers.Helpers
 
-<MudDialog Style="max-width:800px;" Class="m-2">
-    <DialogContent>
-        <!--Get Medbase Premium banner-->
-        <MudText Typo="Typo.body1" Class="@(limitIsReached ? "d-block" : "d-none")">
-            Get Medbase Premium, pretty please
-        </MudText>
+<AuthorizeView>
+    <Authorized>
+        <MudDialog Style="max-width:800px;" Class="m-2">
+            <DialogContent>
+                <!--Get Medbase Premium banner-->
+                <MudText Typo="Typo.body1" Class="@(limitIsReached ? "d-block" : "d-none")">
+                    Get Medbase Premium, pretty please
+                </MudText>
 
-        <!--Content if user can still use AI-->
-        <div class="@(limitIsReached ? "d-none" : "d-block")">
-            <div class="text-center">
-                <MudTextField T="string"
-                              @ref="textField"
-                              Disabled="@isLoading"
-                              @bind-Text="question"
-                              Variant="Variant.Outlined"
-                              Label="Edit your question"
-                              Lines="5" />
-                <MudProgressLinear Color="Color.Primary"
-                                   Rounded="true"
-                                   Class="my-3"
-                                   Size="Size.Small"
-                                   Value="(usageCount / Helpers.MaxFreeAIUsage) * 100" />
-            </div>
-            <MudPaper Class="shadow border">
-                <div class="m-2 p-5">
-                    @if (isLoading)
-                    {
-                        <SkeletonLoadingComponent />
-                    }
-                    else
-                    {
-                        @if (string.IsNullOrWhiteSpace(aiAnswerStringBuilder.ToString()))
-                        {
-                            <MudText>Your answer will appear here</MudText>
-                        }
-                        else
-                        {
-                            <MudMarkdown Value="@aiAnswerStringBuilder.ToString()" />
-                            <div>
-                                <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" />
-                                Medbase AI
-                            </div>
-                            <MudSpacer />
-                            <MudSpacer />
-                            <MudText Typo="Typo.body2">AI generated answers aren't always correct.</MudText>
-                        }
-                    }
+                <!--Content if user can still use AI-->
+                <div class="@(limitIsReached ? "d-none" : "d-block")">
+                    <div class="text-center">
+                        <MudTextField T="string"
+                                      @ref="textField"
+                                      Disabled="@isLoading"
+                                      @bind-Text="question"
+                                      Variant="Variant.Outlined"
+                                      Label="Edit your question"
+                                      Lines="5" />
+                        <MudProgressLinear Color="Color.Primary"
+                                           Rounded="true"
+                                           Class="my-3"
+                                           Size="Size.Small"
+                                           Value="(usageCount / Helpers.MaxFreeAIUsage) * 100" />
+                    </div>
+                    <MudPaper Class="shadow border">
+                        <div class="m-2 p-5">
+                            @if (isLoading)
+                            {
+                                <SkeletonLoadingComponent />
+                            }
+                            else
+                            {
+                                @if (string.IsNullOrWhiteSpace(aiAnswerStringBuilder.ToString()))
+                                {
+                                    <MudText>Your answer will appear here</MudText>
+                                }
+                                else
+                                {
+                                    <MudMarkdown Value="@aiAnswerStringBuilder.ToString()" />
+                                    <div>
+                                        <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" />
+                                        Medbase AI
+                                    </div>
+                                    <MudSpacer />
+                                    <MudSpacer />
+                                    <MudText Typo="Typo.body2">AI generated answers aren't always correct.</MudText>
+                                }
+                            }
+                        </div>
+                    </MudPaper>
+                    <MudText>
+                        @usageIndicator
+                    </MudText>
                 </div>
-            </MudPaper>
-            <MudText>
-                @usageIndicator
-            </MudText>
-        </div>
-    </DialogContent>
-    <DialogActions>
-        <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
-        <MudButton Color="Color.Primary"
-                   Disabled="@isLoading"
-                   OnClick="SendOpenAI">Ask</MudButton>
-    </DialogActions>
-</MudDialog>
+            </DialogContent>
+            <DialogActions>
+                <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
+                <MudButton Color="Color.Primary"
+                           Disabled="@isLoading"
+                           OnClick="SendOpenAI">Ask</MudButton>
+            </DialogActions>
+        </MudDialog>
+    </Authorized>
+    <NotAuthorized>
+        <LoginBanner/>
+    </NotAuthorized>
+</AuthorizeView>
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
     [Parameter]

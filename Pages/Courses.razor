@@ -1,4 +1,5 @@
-﻿@inject IApiRepository repository
+﻿@using MedbaseLibrary.CoursesAndTopics
+@inject ICoursesAndTopics repository
 @inject NavigationManager navManager;
 
 @if (!CoursesList.Any())
@@ -8,23 +9,33 @@
     else
     {
         <div class="row pt-5">
-            @foreach (Course item in CoursesList)
+        @foreach (CourseWithNotesEssaysInfoDto item in CoursesList)
             {
                 <div class="col-6 col-lg-4 col-sm-6 mb-5">
                     <MudCard @onclick="() => GoToTopics(item.CourseRef)">
                         <MudCardMedia Image="@item.ImageURL" Height="300" />
                         <MudCardContent>
                             <MudText Typo="Typo.h6">
-                                @item.Title
+                                @item.Course
                             </MudText>
                             <MudText Typo="Typo.body2" Class="d-lg-block d-none">
                                 @item.Description
                             </MudText>
                         </MudCardContent>
                         <MudCardActions>
-                        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToTopics(item.CourseRef)">Topics</MudButton>
-                        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToNotes(item.CourseRef)">Notes</MudButton>
-                            <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToEssays(item.CourseRef)">Essays</MudButton>
+                        <MudButton Variant="Variant.Text" 
+                                Color="Color.Primary" 
+                                OnClick="() => GoToTopics(item.CourseRef)">
+                                Questions
+                        </MudButton>
+                        <MudButton 
+                            Variant="Variant.Text" 
+                            Color="Color.Primary" 
+                            Class="@(item.HasNotes.Equals(true) ? "d-block" : "d-none")"
+                            OnClick="() => GoToNotes(item.CourseRef)">
+                            Notes
+                        </MudButton>
+                        @* <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToEssays(item.CourseRef)">Essays</MudButton> *@
                         </MudCardActions>
                     </MudCard>
                 </div>
@@ -35,9 +46,9 @@
     }
 
 @code {
-    private IEnumerable<Course> CoursesList { get; set; } = Enumerable.Empty<Course>();
+    private IEnumerable<CourseWithNotesEssaysInfoDto> CoursesList { get; set; } = Enumerable.Empty<CourseWithNotesEssaysInfoDto>();
 
-    protected override async Task OnInitializedAsync() => CoursesList = await repository.GetCourses();
+    protected override async Task OnInitializedAsync() => CoursesList = await repository.GetCourseWithNotesEssaysInfoAsync();
 
     private void GoToTopics(string courseRef)
     {
