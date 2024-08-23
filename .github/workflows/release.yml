@@ -28,7 +28,7 @@ jobs:
     - name: List directory contents
       run: ls -R MedbaseComponents
     - name: Build
-      run: dotnet build -c Release
+      run: dotnet build MedbaseComponents/MedbaseComponents.csproj -c Release
     - name: Inject Open AI Secret
       run: echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
     - name: Pack nugets
