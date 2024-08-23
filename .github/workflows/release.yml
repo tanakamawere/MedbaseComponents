@@ -13,8 +13,12 @@ jobs:
     steps:
     - name: Print Environment Variables
       run: echo $REPO_ACCESS_TOKEN
-    - name: Checkout
-      uses: actions/checkout@v2
+    - name: Checkout Medbase Components Repo
+      uses: actions/checkout@v3
+      with:
+        repository: tanakamawere/MedbaseComponents
+        token: ${{ secrets.REPO_ACCESS_TOKEN }}
+        path: MedbaseComponents
     - name: Setup .NET SDK
       uses: actions/setup-dotnet@v1
     - name: Pull Medbase Library
@@ -22,7 +26,7 @@ jobs:
       with: 
         repository: tanakamawere/medbaselibrary
         token: ${{ secrets.REPO_ACCESS_TOKEN }}
-        path: MedbaseLibrary
+        path: MedbaseComponents/MedbaseLibrary
     - name: Build
       run: dotnet build -c Release
     - name: Inject Open AI Secret
