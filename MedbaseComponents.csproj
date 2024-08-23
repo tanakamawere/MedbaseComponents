@@ -34,9 +34,6 @@
 		<None Include="medbase_logo.png" Pack="true" PackagePath="." />
 	</ItemGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\MedbaseLibrary\MedbaseLibrary.csproj" />
-	</ItemGroup>
-	<ItemGroup>
 	  <Content Update="wwwroot\css\common.css">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </Content>
