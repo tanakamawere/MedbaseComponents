@@ -27,6 +27,8 @@ jobs:
         path: MedbaseComponents/MedbaseLibrary
     - name: List directory contents
       run: ls -R MedbaseComponents
+    - name: Restore MAUI Workloads
+      run: dotnet workload restore
     - name: Build
       run: dotnet build MedbaseComponents/MedbaseComponents.csproj -c Release
     - name: Inject Open AI Secret
