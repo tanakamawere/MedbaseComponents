@@ -11,13 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-    - name: Print Environment Variables
-      run: echo $REPO_ACCESS_TOKEN
     - name: Checkout Medbase Components Repo
       uses: actions/checkout@v3
       with:
         repository: tanakamawere/MedbaseComponents
         token: ${{ secrets.REPO_ACCESS_TOKEN }}
+        path: MedbaseComponents
     - name: Setup .NET SDK
       uses: actions/setup-dotnet@v1
     - name: Pull Medbase Library
@@ -26,6 +25,10 @@ jobs:
         repository: tanakamawere/medbaselibrary
         token: ${{ secrets.REPO_ACCESS_TOKEN }}
         path: MedbaseComponents/MedbaseLibrary
+    - name: List directory contents
+      run: ls -R MedbaseComponents
+    - name: List Library Folder
+      run: ls -R MedbaseLibrary
     - name: Build
       run: dotnet build -c Release
     - name: Inject Open AI Secret
