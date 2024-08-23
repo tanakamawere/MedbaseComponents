@@ -18,7 +18,6 @@ jobs:
       with:
         repository: tanakamawere/MedbaseComponents
         token: ${{ secrets.REPO_ACCESS_TOKEN }}
-        path: MedbaseComponents
     - name: Setup .NET SDK
       uses: actions/setup-dotnet@v1
     - name: Pull Medbase Library
