@@ -15,16 +15,15 @@ jobs:
       uses: actions/checkout@v2
     - name: Setup .NET SDK
       uses: actions/setup-dotnet@v1
-    - name: Restore workloads
-      run:  dotnet workload restore
-    - name: Add MedbaseLibrary Nuget Package
-      run: dotnet add package MedbaseLibrary
+    - name: Pull Medbase Library
+      uses: actions/checkout@v3
+      with: 
+        repository: 'https://github.com/tanakamawere/medbaselibrary'
+        path: MedbaseLibrary
     - name: Build
       run: dotnet build -c Release
-      env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-    - name: Test
-      run: dotnet test -c Release --no-build
+    - name: Inject Open AI Secret
+      run: echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
     - name: Pack nugets
       run: dotnet pack -c Release --no-build --output .
     - name: Push to NuGet
