@@ -48,7 +48,7 @@
         @foreach (Product product in ProductsList)
         {
             <div class="col-lg-3 mb-5">
-                <MudCard @onclick="() => GoTo(product.Id)">
+                <MudCard>
                     <MudCardMedia Image="@product.ImageUrl" Height="250" />
                     <MudCardContent>
                         <MudText Class="fw-bolder" Typo="Typo.h4">@product.Name</MudText>
@@ -58,7 +58,9 @@
                         </MudText>
                     </MudCardContent>
                     <MudCardActions>
-                        <MudButton StartIcon="@Icons.Material.Filled.Money" Color="Color.Default">
+                        <MudButton Href="@($"https://wa.me/263713881589?text=Hey.%20Can%20I%20order%20this%20{product.Name}?")"
+                                    StartIcon="@Icons.Material.Filled.Money" 
+                                    Color="Color.Default">
                             Order
                         </MudButton>
                     </MudCardActions>

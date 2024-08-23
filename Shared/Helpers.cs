@@ -8,6 +8,5 @@ public class Helpers
     {
         _ = Snackbar.Add(message, severity);
     }
-
-    public const string OpenApiKey = "";
+    public static string OpenApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
 }
