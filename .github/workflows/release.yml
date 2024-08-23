@@ -13,28 +13,22 @@ jobs:
     steps:
     - name: Checkout Medbase Components Repo
       uses: actions/checkout@v3
-      with:
-        repository: tanakamawere/MedbaseComponents
-        token: ${{ secrets.REPO_ACCESS_TOKEN }}
-        path: MedbaseComponents
     - name: Setup .NET SDK
       uses: actions/setup-dotnet@v1
-    - name: Pull Medbase Library
-      uses: actions/checkout@v3
-      with: 
-        repository: tanakamawere/medbaselibrary
-        token: ${{ secrets.REPO_ACCESS_TOKEN }}
-        path: MedbaseComponents/MedbaseLibrary
-    - name: List directory contents
-      run: ls -R MedbaseComponents
+    - name: Install Medbase Library From Nuget
+      run: dotnet add package MedbaseLibrary
     - name: Restore MAUI Workloads
       working-directory: MedbaseComponents
       run: dotnet workload restore
     - name: Build
-      run: dotnet build MedbaseComponents/MedbaseComponents.csproj -c Release
-    - name: Inject Open AI Secret
-      run: echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
-    - name: Pack nugets
-      run: dotnet pack -c Release --no-build --output .
-    - name: Push to NuGet
-      run: dotnet nuget push "*.nupkg" --api-key ${{secrets.nuget_api_key}} --source https://api.nuget.org/v3/index.json
+      run: dotnet build -c Release
+  deploy:
+      runs-on: ubuntu-latest
+      needs: build
+      steps:
+        - name: Inject Open AI Secret
+          run: echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
+        - name: Pack nugets
+          run: dotnet pack -c Release --no-build --output .
+        - name: Push to NuGet
+          run: dotnet nuget push "*.nupkg" --api-key ${{secrets.nuget_api_key}} --source https://api.nuget.org/v3/index.json
