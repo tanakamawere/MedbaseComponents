@@ -27,8 +27,6 @@ jobs:
         path: MedbaseComponents/MedbaseLibrary
     - name: List directory contents
       run: ls -R MedbaseComponents
-    - name: List Library Folder
-      run: ls -R MedbaseLibrary
     - name: Build
       run: dotnet build -c Release
     - name: Inject Open AI Secret
