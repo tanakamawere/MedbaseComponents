@@ -18,7 +18,7 @@ jobs:
     - name: Pull Medbase Library
       uses: actions/checkout@v3
       with: 
-        repository: 'https://github.com/tanakamawere/medbaselibrary'
+        repository: tanakamawere/medbaselibrary
         path: MedbaseLibrary
     - name: Build
       run: dotnet build -c Release
