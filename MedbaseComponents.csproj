@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net9.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
 	  <UseMauiEssentials>true</UseMauiEssentials>
@@ -23,11 +23,12 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Markdig" Version="0.37.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.7" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.7" />
-		<PackageReference Include="MudBlazor" Version="7.4.0" />
-		<PackageReference Include="MudBlazor.Markdown" Version="1.0.2" />
+		<PackageReference Include="Markdig" Version="0.38.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.0" />
+		<PackageReference Update="Microsoft.Maui.Essentials" Version="9.0.10" />
+		<PackageReference Include="MudBlazor" Version="7.8.0" />
+		<PackageReference Include="MudBlazor.Markdown" Version="7.8.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="readme.md" Pack="true" PackagePath="." />
@@ -40,9 +41,6 @@
 	  <Content Update="wwwroot\css\common.css">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </Content>
-	</ItemGroup>
-	<ItemGroup>
-	  <PackageReference Update="Microsoft.Maui.Essentials" Version="8.0.70" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="Pages\Questions2\" />
