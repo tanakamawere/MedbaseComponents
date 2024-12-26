@@ -14,7 +14,9 @@ jobs:
     - name: Checkout Medbase Components Repo
       uses: actions/checkout@v3
     - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '9.x'
     - name: Restore MAUI Workloads
       run: dotnet workload restore
     - name: Install Medbase Library From Nuget
