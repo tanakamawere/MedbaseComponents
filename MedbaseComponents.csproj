@@ -7,7 +7,7 @@
 	  <UseMauiEssentials>true</UseMauiEssentials>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
 	  <PackageId>MedbaseComponents</PackageId>
-	  <Version>1.0.6</Version>
+	  <Version>1.1</Version>
 	  <Authors>Tanaka Mawere</Authors>
 	  <Author>Tanaka Mawere</Author>
 	  <PackageIcon>medbase_logo.png</PackageIcon>
