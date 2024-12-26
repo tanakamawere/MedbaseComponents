@@ -8,10 +8,10 @@
     }
     else
     {
-        <div class="row pt-5">
+        <MudGrid Class="mt-8">
         @foreach (CourseWithNotesEssaysInfoDto item in CoursesList)
             {
-                <div class="col-6 col-lg-4 col-sm-6 mb-5">
+            <MudItem xs="12" sm="6" md="3">
                     <MudCard @onclick="() => GoToTopics(item.CourseRef)">
                         <MudCardMedia Image="@item.ImageURL" Height="300" />
                         <MudCardContent>
@@ -38,10 +38,10 @@
                         @* <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToEssays(item.CourseRef)">Essays</MudButton> *@
                         </MudCardActions>
                     </MudCard>
-                </div>
+                </MudItem>
 
             }
-        </div>
+        </MudGrid>
         
     }
 

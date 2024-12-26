@@ -48,7 +48,7 @@
             {
                 <Virtualize Items="TopicsList.ToList()" TItem="Topic" Context="item">
                     <ItemContent>
-                        <div class="col-lg-4 mb-2">
+                        <MudItem lg="4" Class="mb-2">
                             <MudCard>
                                 <MudCardHeader>
                                     <CardHeaderContent>
@@ -58,9 +58,10 @@
                                     </CardHeaderContent>
                                 </MudCardHeader>
                                 <MudCardActions>
-                                    <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToQuestions(item)">Questions</MudButton>
+                                    <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToQuestions(item)">True/False Questions</MudButton>
+                                    <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToSingleBestQuestions(item)">Single Best Questions</MudButton>
                                     <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToEssays(item.TopicRef)">Essays</MudButton>
-                                    <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => Download(item)">Download</MudButton>
+                                    @* <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => Download(item)">Download</MudButton> *@
                                 </MudCardActions>
                             </MudCard>
                             @*<div class="card h-100 shadow border-0">
@@ -84,7 +85,7 @@
                                     </div>
                                 </div>
                             </div>*@
-                        </div>
+                        </MudItem>
                     </ItemContent>
                 </Virtualize>
             }
@@ -219,6 +220,12 @@
             navManager.NavigateTo($"/questions2/{topic.TopicRef}/{source}");
         }
     }
+
+    private void GoToSingleBestQuestions(Topic topic)
+    {
+        navManager.NavigateTo($"/questions2/{topic.TopicRef}");
+    }
+
     private void GoToEssays(int topicRef)
     {
         navManager.NavigateTo($"/essays/topic/{topicRef}");

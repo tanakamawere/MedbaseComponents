@@ -10,6 +10,7 @@
 @using System.Text.Json
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
+@using OpenAI
 @using static MedbaseLibrary.Helpers.Helpers
 @inject ISnackbar Snackbar
 @inject IApiRepository apiRepository
@@ -160,7 +161,7 @@
     private Response<AssistantThread> thread; 
     private Response<PageableList<ThreadMessage>> messagesOpenAi;
     private List<AiChat> AiChats = [];
-    private List<ChatResponseMessage> chatMessages = [];
+    //private List<ChatResponseMessage> chatMessages = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -290,22 +291,22 @@
         try
         {
 
-            var chatCompletionsOptions = new ChatCompletionsOptions
-            {
-                DeploymentName = "gpt-3.5-turbo",
-                Messages = 
-                {
-                },
-                MaxTokens = 2000
-            };
+            // var chatCompletionsOptions = new ChatCompletionsOptions
+            // {
+            //     DeploymentName = "gpt-3.5-turbo",
+            //     Messages = 
+            //     {
+            //     },
+            //     MaxTokens = 2000
+            // };
 
-            Response<ChatCompletions> response = await openAIClient.GetChatCompletionsAsync(chatCompletionsOptions);
+            // Response<ChatCompletions> response = await openAIClient.GetChatCompletionsAsync(chatCompletionsOptions);
 
-            var message = response.Value.Choices[0].Message;
+            // var message = response.Value.Choices[0].Message;
 
 
 
-            Console.WriteLine(message.Content);
+            //Console.WriteLine(message.Content);
 
         }
         catch (Exception ex)

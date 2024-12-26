@@ -1,18 +1,17 @@
 ﻿@using Markdig
 <MudPaper Outlined="true" Class="p-1">
-    <MudGrid>
-        <MudItem xs="9">
-            <MudText>
-                @Answer.ToString()
-            </MudText>
-            <MudText Class="@(string.IsNullOrWhiteSpace(Explanation) ? "d-none" : "d-block")">
-                @((MarkupString)Markdown.ToHtml(Explanation == null ? " " : Explanation))
-            </MudText>
-        </MudItem>
-        <MudItem xs="3">
-            <MudIconButton Size="Size.Medium" OnClick="@(() => AskMedbaseClicked.InvokeAsync())" Icon="@Icons.Material.Filled.AutoAwesome">Ask AI</MudIconButton>
-        </MudItem>
-    </MudGrid>
+    <MudStack Spacing="4" Justify="Justify.Center">
+        <MudText Align="Align.Center">
+            @Answer.ToString()
+        </MudText>
+        <MudText Class="@(string.IsNullOrWhiteSpace(Explanation) ? "d-none" : "d-block")">
+            @((MarkupString)Markdown.ToHtml(Explanation == null ? " " : Explanation))
+        </MudText>
+
+        <MudButton Color="Color.Default" Size="Size.Small" OnClick="@(() => AskMedbaseClicked.InvokeAsync())" StartIcon="@Icons.Material.Filled.AutoAwesome">
+            Ask AI
+        </MudButton>
+    </MudStack>
 </MudPaper>
 
 @code {
