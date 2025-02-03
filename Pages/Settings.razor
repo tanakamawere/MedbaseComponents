@@ -1,0 +1,103 @@
+@page "/settings"
+@using Medbase.Application.Services
+@using MedbaseLibrary.CoursesAndTopics
+@using MedbaseLibrary.UserPreferences
+@inject CoursesClient coursesClient;
+@inject UserCoursePreferencesClient userCoursePreferencesClient;
+@inject UserService userService;
+@inject NavigationManager navManager;
+@inject ISnackbar Snackbar;
+
+
+<MudContainer>
+    <MudTabs>
+        <MudTabPanel Text="General">
+            <MudSwitch Label="Dark Mode" T="bool" @bind-Checked="DarkMode" />
+            <MudSwitch Label="Enable Notifications" T="bool" @bind-Checked="EnableNotifications" />
+        </MudTabPanel>
+
+        <MudTabPanel Text="Account">
+            <MudText Typo="Typo.h6">Manage Account</MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ChangePassword">Change Password</MudButton>
+        </MudTabPanel>
+
+        <MudTabPanel Text="Course Preferences">
+            <MudText Typo="Typo.h6">Select Your Courses</MudText>
+            <MudList T="Course" @bind-SelectedValues="SelectedValues" ReadOnly="false" SelectionMode="SelectionMode.MultiSelection">
+                @foreach (var course in AvailableCourses)
+                {
+                    <MudListItem Text="@course.Title" Value="@course"/>
+                }
+            </MudList>
+            <MudButton Variant="MudBlazor.Variant.Filled" Color="Color.Primary" OnClick="SavePreferences">Save Preferences</MudButton>
+        </MudTabPanel>
+    </MudTabs>
+</MudContainer>
+
+@code {
+
+    private IReadOnlyCollection<Course> SelectedValues { get; set; }
+    private IEnumerable<Course> AvailableCourses = Enumerable.Empty<Course>();
+    private bool DarkMode = false;
+    private bool EnableNotifications = true;
+    private string userId = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            userId = await userService.GetUserIdAsync();
+            await GetPreferencesAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex}", Severity.Error);
+        }
+    }
+
+    private async Task GetPreferencesAsync()
+    {
+        //Get the current user's preferences using the user id
+        var userPreferences = await userCoursePreferencesClient.GetUserCoursePrefsAsync(userId);
+
+        //Get all available courses
+        var courses = await coursesClient.GetCoursesAsync();
+
+        //Create a list of SettingsCourse objects
+        if (userPreferences.Data != null)
+        {
+            SelectedValues = userPreferences.Data.Select(preference => preference.Course).ToList();
+            AvailableCourses = courses.Data.Except(SelectedValues).ToList();
+        }
+        else
+        {
+            AvailableCourses = courses.Data;
+        }
+    }
+
+    private void ChangePassword()
+    {
+        // Logic to change password
+    }
+
+    private async Task SavePreferences()
+    {
+        IEnumerable<UserCoursePreference> preferences = SelectedValues.Select(course => new UserCoursePreference 
+            {
+                CourseId = course.Id,
+                UserId = userId,
+                Course = course
+            });
+
+        var response = await userCoursePreferencesClient.AddUserCoursePrefsAsync(preferences);
+        if (response.IsSuccess)
+        {
+            Snackbar.Add("Preferences saved successfully", Severity.Success);
+            await GetPreferencesAsync();
+        }
+        else
+        {
+            Snackbar.Add($"Error saving preferences: {response.ErrorMessage}", Severity.Error);
+        }
+    }
+}
