@@ -1,5 +1,6 @@
 @page "/settings"
 @using Medbase.Application.Services
+@using MedbaseComponents.Shared
 @using MedbaseLibrary.CoursesAndTopics
 @using MedbaseLibrary.UserPreferences
 @inject CoursesClient coursesClient;
@@ -22,25 +23,44 @@
         </MudTabPanel>
 
         <MudTabPanel Text="Course Preferences">
-            <MudText Typo="Typo.h6">Select Your Courses</MudText>
-            <MudList T="Course" @bind-SelectedValues="SelectedValues" ReadOnly="false" SelectionMode="SelectionMode.MultiSelection">
-                @foreach (var course in AvailableCourses)
-                {
-                    <MudListItem Text="@course.Title" Value="@course"/>
-                }
-            </MudList>
-            <MudButton Variant="MudBlazor.Variant.Filled" Color="Color.Primary" OnClick="SavePreferences">Save Preferences</MudButton>
+            @if (IsBusy)
+            {
+                <LoadingComponent Message="Getting preferences..." />
+            }
+            else
+            {
+                <MudText Typo="Typo.h6">Courses you have selected already</MudText>
+
+                <div class="d-flex">
+                    @foreach (var item in ExistingCourses)
+                    {
+                        <MudChip T="string" OnClick="() => OnExistingChipClicked(item.Id)">@item.Title</MudChip>
+                    }
+                </div>
+
+                <MudText Typo="Typo.h6">Available courses</MudText>
+
+                <MudChipSet T="Course">
+                    @foreach (var item in AvailableCourses)
+                    {
+                        <MudChip T="string" OnClick="() => OnAvailableChipClicked(item.Id)">@item.Title</MudChip>
+                    }
+                </MudChipSet>
+
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SavePreferences">Save Preferences</MudButton>
+            }
         </MudTabPanel>
     </MudTabs>
 </MudContainer>
 
 @code {
-
-    private IReadOnlyCollection<Course> SelectedValues { get; set; }
-    private IEnumerable<Course> AvailableCourses = Enumerable.Empty<Course>();
+    private List<Course> AvailableCourses = [];
+    private List<Course> ExistingCourses = [];
+    private IEnumerable<UserCoursePreference> ExistingCoursePreferences = Enumerable.Empty<UserCoursePreference>();
     private bool DarkMode = false;
     private bool EnableNotifications = true;
     private string userId = "";
+    bool IsBusy = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -51,28 +71,45 @@
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error: {ex}", Severity.Error);
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
         }
+    }
+
+    private void OnExistingChipClicked(int courseId)
+    {
+        //Remove the course from the existing pref list and add to the available courses
+        var course = ExistingCourses.FirstOrDefault(c => c.Id == courseId);
+        ExistingCourses.Remove(course);
+        AvailableCourses.Add(course);
+    }
+
+    private void OnAvailableChipClicked(int courseId)
+    {
+        var course = AvailableCourses.FirstOrDefault(c => c.Id== courseId);
+        AvailableCourses.Remove(course);
+        ExistingCourses.Add(course);
     }
 
     private async Task GetPreferencesAsync()
     {
-        //Get the current user's preferences using the user id
+        IsBusy = true;
+
+        ExistingCourses.Clear();
+        AvailableCourses.Clear();
+
+        // Get all available courses
+        var courses = await coursesClient.GetCoursesAsync();
         var userPreferences = await userCoursePreferencesClient.GetUserCoursePrefsAsync(userId);
 
-        //Get all available courses
-        var courses = await coursesClient.GetCoursesAsync();
+        AvailableCourses = courses.Data.ToList();
 
-        //Create a list of SettingsCourse objects
-        if (userPreferences.Data != null)
+        foreach (var item in userPreferences.Data)
         {
-            SelectedValues = userPreferences.Data.Select(preference => preference.Course).ToList();
-            AvailableCourses = courses.Data.Except(SelectedValues).ToList();
+            ExistingCourses.Add(item.Course);
+            var itemToRemove = AvailableCourses.Where(x => x.Id == item.Course.Id).FirstOrDefault();
+            AvailableCourses.Remove(itemToRemove);
         }
-        else
-        {
-            AvailableCourses = courses.Data;
-        }
+        IsBusy = false;
     }
 
     private void ChangePassword()
@@ -82,22 +119,41 @@
 
     private async Task SavePreferences()
     {
-        IEnumerable<UserCoursePreference> preferences = SelectedValues.Select(course => new UserCoursePreference 
-            {
-                CourseId = course.Id,
-                UserId = userId,
-                Course = course
-            });
+        IsBusy = true;
 
-        var response = await userCoursePreferencesClient.AddUserCoursePrefsAsync(preferences);
-        if (response.IsSuccess)
+        // Get the selected course IDs from existing courses list
+        var selectedCourseIds = ExistingCourses.Select(c => c.Id).ToList();
+
+        UserCoursePrefDto userCoursePrefDto = new()
+            {
+                UserId = userId,
+                CourseIds = selectedCourseIds
+            };
+
+        if (ExistingCoursePreferences != null)
+        {
+            var response = await userCoursePreferencesClient.UpdateUserCoursePrefAsync(userCoursePrefDto);
+            await DisplayMessage(response.IsSuccess, response.ErrorMessage);
+        }
+        else
+        {
+            var response = await userCoursePreferencesClient.AddUserCoursePrefsAsync(userCoursePrefDto);
+            await DisplayMessage(response.IsSuccess, response.ErrorMessage);
+        }
+
+        IsBusy = false;
+    }
+
+    private async Task DisplayMessage(bool success, string errorMessage = "")
+    {
+        if (success)
         {
             Snackbar.Add("Preferences saved successfully", Severity.Success);
             await GetPreferencesAsync();
         }
         else
         {
-            Snackbar.Add($"Error saving preferences: {response.ErrorMessage}", Severity.Error);
+            Snackbar.Add($"Error saving preferences: {errorMessage}", Severity.Error);
         }
     }
 }
