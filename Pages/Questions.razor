@@ -4,14 +4,15 @@
 @using MedbaseLibrary.Services
 @using MedbaseComponents.Controls
 @inject IDialogService DialogService
+@inject QuestionClient questionClient
 @inject IApiRepository repository
 @inherits BasePage
 @inject NavigationManager navManager
 @using Markdig
 
 <PageTitle>@title</PageTitle>
-    <HeadContent>
-        <title>@title</title>
+<HeadContent>
+    <title>@title</title>
     <meta name="title" content="@title" />
     <meta name="description" content="@description" />
 
@@ -42,11 +43,11 @@
             <LoadingComponent />
         </div>
     }
-    else if(QuestionPagedWithTopic.QuestionsWithTopic.Questions.Count().Equals(0))
+    else if(QuestionPagedWithTopic.Questions.Count().Equals(0))
     {
         <EmptyResults SearchWord="@searchTerm" />
     }
-    else if(isLoading.Equals(false) && QuestionPagedWithTopic.QuestionsWithTopic.Questions.Count().Equals(0))
+    else if(isLoading.Equals(false) && QuestionPagedWithTopic.Questions.Count().Equals(0))
     {
         <UnderConstruction/>
     }
@@ -58,13 +59,13 @@
 
         <div style="margin-bottom:75px;" class="m-2 position-fixed bottom-0 end-0 justify-content-center @(showToolbar.Equals(true) ? "d-none" : "d-block")">
             <MudFab Color="Color.Primary" 
-                    StartIcon="@Icons.Material.Filled.More" 
-                    OnClick="OpenToolbar"
-                    Label="Show Toolbar"
-                    Class="object-left" />
+            StartIcon="@Icons.Material.Filled.More" 
+            OnClick="OpenToolbar"
+            Label="Show Toolbar"
+            Class="object-left" />
         </div>
         <div class="col-lg-6 col-md-8 mx-auto fw-normal" style="margin-bottom:150px;">
-            <Virtualize Items="QuestionPagedWithTopic.QuestionsWithTopic.Questions.ToList()" Context="question" TItem="Question">
+            <Virtualize Items="QuestionPagedWithTopic.Questions.ToList()" Context="question" TItem="Question">
                 <ItemContent>
                     <MudCard class="mb-2">
                         <MudCardHeader>
@@ -84,10 +85,10 @@
                                 <MudText>a) @question.ChildA</MudText>
                                 <div style="display:@(Answers == 1 && qts == question.Id ? "block" : "none")">
                                     <QuestionAnswerTemplate QuestionMain="@question.QuestionMain" 
-                                        Child="@question.ChildA" 
-                                        Answer="@question.AnswerA" 
-                                        Explanation="@question.ExplanationA"
-                                                            AskMedbaseClicked="@(() => AskAIQuestion(question.QuestionMain, question.ChildA, question.AnswerA))" />
+                                    Child="@question.ChildA" 
+                                    Answer="@question.AnswerA" 
+                                    Explanation="@question.ExplanationA"
+                                    AskMedbaseClicked="@(() => AskAIQuestion(question.QuestionMain, question.ChildA, question.AnswerA))" />
                                 </div>
                             </div>
                             <!--Child2-->
@@ -95,32 +96,32 @@
                                 <MudText>b) @question.ChildB</MudText>
                                 <div style="display:@(Answers == 1 && qts == question.Id ? "block" : "none")">
                                     <QuestionAnswerTemplate QuestionMain="@question.QuestionMain" 
-                                            Child="@question.ChildB" 
-                                            Answer="@question.AnswerB" 
-                                            Explanation="@question.ExplanationB"
-                                                            AskMedbaseClicked="@(() => AskAIQuestion(question.QuestionMain, question.ChildB, question.AnswerB))" />
+                                    Child="@question.ChildB" 
+                                    Answer="@question.AnswerB" 
+                                    Explanation="@question.ExplanationB"
+                                    AskMedbaseClicked="@(() => AskAIQuestion(question.QuestionMain, question.ChildB, question.AnswerB))" />
                                 </div>
                             </div>
                             <!--Child3-->
                             <div>
                                 <MudText>c) @question.ChildC</MudText>
                                 <div style="display:@(Answers == 1 && qts == question.Id ? "block" : "none")">
-                                        <QuestionAnswerTemplate QuestionMain="@question.QuestionMain" 
-                                                Child="@question.ChildC" 
-                                                Answer="@question.AnswerC" 
-                                                Explanation="@question.ExplanationC"
-                                                            AskMedbaseClicked="@(() => AskAIQuestion(question.QuestionMain, question.ChildC, question.AnswerC))" />
+                                    <QuestionAnswerTemplate QuestionMain="@question.QuestionMain" 
+                                    Child="@question.ChildC" 
+                                    Answer="@question.AnswerC" 
+                                    Explanation="@question.ExplanationC"
+                                    AskMedbaseClicked="@(() => AskAIQuestion(question.QuestionMain, question.ChildC, question.AnswerC))" />
                                 </div>
                             </div>
                             <!--Child4-->
                             <div>
                                 <MudText>d) @question.ChildD</MudText>
                                 <div style="display:@(Answers == 1 && qts == question.Id ? "block" : "none")">
-                                        <QuestionAnswerTemplate QuestionMain="@question.QuestionMain" 
-                                            Child="@question.ChildD" 
-                                            Answer="@question.AnswerD" 
-                                            Explanation="@question.ExplanationD"
-                                                            AskMedbaseClicked="@(() => AskAIQuestion(question.QuestionMain, question.ChildD, question.AnswerD))" />
+                                    <QuestionAnswerTemplate QuestionMain="@question.QuestionMain" 
+                                    Child="@question.ChildD" 
+                                    Answer="@question.AnswerD" 
+                                    Explanation="@question.ExplanationD"
+                                    AskMedbaseClicked="@(() => AskAIQuestion(question.QuestionMain, question.ChildD, question.AnswerD))" />
                                 </div>
                             </div>
                             <!--Child5-->
@@ -129,10 +130,10 @@
 
                                 <div class="max-width-explanation-image" style="display:@(Answers == 1 && qts == question.Id ? "block" : "none")">
                                     <QuestionAnswerTemplate QuestionMain="@question.QuestionMain" 
-                                        Child="@question.ChildE" 
-                                        Answer="@question.AnswerE" 
-                                        Explanation="@question.ExplanationE"
-                                                            AskMedbaseClicked="@(() => AskAIQuestion(question.QuestionMain, question.ChildE, question.AnswerE))" />
+                                    Child="@question.ChildE" 
+                                    Answer="@question.AnswerE" 
+                                    Explanation="@question.ExplanationE"
+                                    AskMedbaseClicked="@(() => AskAIQuestion(question.QuestionMain, question.ChildE, question.AnswerE))" />
                                 </div>
                             </div>
                         </MudCardContent>
@@ -163,7 +164,7 @@
     public int qts;
     private QuestionsToolbar questionsToolbar;
     //QuestionPaged QuestionPaged = new ();
-    QuestionPagedWithTopic QuestionPagedWithTopic = new();
+    QuestionPaged QuestionPagedWithTopic = new();
     private List<Question> QuestionsList { get; set; } = new();
 
 
@@ -203,13 +204,21 @@
 
         if (!CheckIfIsMaui())
         {
-            QuestionPagedWithTopic = await repository.GetPagedQuestionsWithTopic(topicRef, page, 10f);
+            var response = await questionClient.GetQuestionsPagedAsync(topicRef, 10f, page);
+            if (response.IsSuccess)
+            {
+                QuestionPagedWithTopic = response.Data;
+            }
         }
         else
         {
             if(string.IsNullOrEmpty(source))
             {
-                QuestionPagedWithTopic = await repository.GetPagedQuestionsWithTopic(topicRef, page, 10f);
+                var response = await questionClient.GetQuestionsPagedAsync(topicRef, 10f, page);
+                if (response.IsSuccess)
+                {
+                    QuestionPagedWithTopic = response.Data;
+                }
             }
 #if !WINDOWS
             else if (source.Equals("offline"))
@@ -258,14 +267,14 @@
             {
                 searchTerm = result.Data.ToString();
                 isLoading = true;
-                QuestionPagedWithTopic.QuestionsWithTopic.Questions = await repository.GetQuestionsByKeyword(searchTerm);
+                QuestionPagedWithTopic.Questions = await repository.GetQuestionsByKeyword(searchTerm);
 
                 //adjust toolbar appearance
                 questionsToolbar.Searched = true;
                 questionsToolbar.SearchText = searchTerm;
-                questionsToolbar.NumberOfSearchResults = QuestionPagedWithTopic.QuestionsWithTopic.Questions.Count().ToString();
+                questionsToolbar.NumberOfSearchResults = QuestionPagedWithTopic.Questions.Count().ToString();
 
-                if (QuestionPagedWithTopic.QuestionsWithTopic.Questions.ToList().Count() == 0)
+                if (QuestionPagedWithTopic.Questions.ToList().Count() == 0)
                 {
                     searchResultsNull = true;
                 }

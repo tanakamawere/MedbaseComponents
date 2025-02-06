@@ -1,0 +1,14 @@
+@page "/post-login"
+@using Medbase.Application.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@inject UserService UserService
+
+<h3>Authenticating...</h3>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    { 
+    }
+}

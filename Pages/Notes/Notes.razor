@@ -1,10 +1,14 @@
 ﻿@page "/notes"
+@using Medbase.Application.Services
+@using MedbaseComponents.Shared
 @using MedbaseLibrary.Models
 @inject NavigationManager navManager
-@inject IApiRepository repository
-@inject INotesRepository notesRepository
+@inject CoursesClient coursesClient
+@inject NotesClient notesClient
+@inject ISnackbar Snackbar
+@inject UserService userService
 <PageTitle>@title</PageTitle>
-    <HeadContent>
+<HeadContent>
     <title>@title</title>
     <meta name="title" content="@title" />
     <meta name="description" content="@description" />
@@ -25,27 +29,15 @@
 </HeadContent>
 
 
-<MudGrid Class="p-5">
-    <MudItem lg="7">
-        <MudText Typo="Typo.h2" class="display-5 fw-bolder mb-2">
-            Notes📝
-        </MudText>
-        <MudText class="fw-normal mb-4">
-            @description
-        </MudText>
-    </MudItem>
-    <MudItem lg="5">
-        <MudImage Src="img/notes.png" Style="max-height:200px" />
-    </MudItem>
-</MudGrid>
-
 <MudContainer Class="mt-5">
     @if (loading)
     {
-        <MedbaseComponents.Controls.LoadingComponent Message="Getting notes from the database..." />
+        <LoadingComponent Message="Getting notes from the database..." />
     }
     else
     {
+
+        <HeaderComponent Title="Your notes" Subtitle="On courses you have selected in your preferences" />
         <div class="row gx-5">
             <Virtualize Items="_courseNotes" Context="courseNotes" TItem="CourseNotesDto">
                 <ItemContent>
@@ -57,13 +49,13 @@
                                     <MudText Typo="Typo.h5">@courseNotes.Course</MudText>
                                 </CardHeaderContent>
                             </MudCardHeader>
-                                <MudCardContent>
+                            <MudCardContent>
                                 @foreach (var topic in courseNotes.Notes)
                                 {
                                     @* <MudText @onclick="() => GoTo(topic.TopicRef)" Typo="Typo.body1">@topic.Name</MudText> *@
                                     <MudLink @onclick="() => GoTo(topic.Id)" 
-                                        Typo="Typo.body1" 
-                                        Class="fw-bolder">@topic.Title</MudLink> <br/>
+                                    Typo="Typo.body1" 
+                                    Class="fw-bolder">@topic.Title</MudLink> <br/>
                                 }
                             </MudCardContent>
                         </MudCard>
@@ -75,8 +67,9 @@
 </MudContainer>
 
 @code {
-    private List<CourseNotesDto> _courseNotes = new();
+    private List<CourseNotesDto> _courseNotes = [];
     private bool loading = true;
+    private string userId = "";
 
     private string description = "Medbase notes are a convenient and effective way to study for medical school exams. A summary of key slides and high yield information. Dive in!";
     private string title = "Notes | Medbase";
@@ -85,8 +78,16 @@
 
     protected override async Task OnInitializedAsync()
     {
+        userId = await userService.GetUserIdAsync();
+
         loading = true;
-        _courseNotes = await notesRepository.GetNotesWithCoursesAsync();
+        var response = await notesClient.GetNotesByUserId(userId);
+
+        if (response.IsSuccess)
+        {
+            _courseNotes = response.Data.ToList();
+        }
+
         loading = false;
     }
     private void GoTo(int id)

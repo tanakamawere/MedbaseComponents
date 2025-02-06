@@ -8,6 +8,7 @@
 @inject UserService userService;
 @inject NavigationManager navManager;
 @inject ISnackbar Snackbar;
+@attribute [Authorize]
 
 
 <MudContainer>
@@ -85,7 +86,14 @@
 
     private void OnAvailableChipClicked(int courseId)
     {
-        var course = AvailableCourses.FirstOrDefault(c => c.Id== courseId);
+        //Don't allow more than 5 courses to be selected
+        if (ExistingCourses.Count >= 5)
+        {
+            Snackbar.Add("You can only select up to 5 courses", Severity.Info);
+            return;
+        }
+
+        var course = AvailableCourses.FirstOrDefault(c => c.Id == courseId);
         AvailableCourses.Remove(course);
         ExistingCourses.Add(course);
     }

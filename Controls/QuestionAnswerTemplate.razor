@@ -1,16 +1,20 @@
 ﻿@using Markdig
 <MudPaper Outlined="true" Class="p-1">
-    <MudStack Spacing="4" Justify="Justify.Center">
+    <MudStack Spacing="1" Justify="Justify.Center">
         <MudText Align="Align.Center">
-            @Answer.ToString()
+            <span class="fw-bolder">
+                @Answer.ToString()
+            </span>
+            <span class="@(string.IsNullOrWhiteSpace(Explanation) ? "d-none" : "d-block")">
+                @((MarkupString)Markdown.ToHtml(Explanation == null ? " " : Explanation))
+            </span>
         </MudText>
-        <MudText Class="@(string.IsNullOrWhiteSpace(Explanation) ? "d-none" : "d-block")">
-            @((MarkupString)Markdown.ToHtml(Explanation == null ? " " : Explanation))
-        </MudText>
-
-        <MudButton Color="Color.Default" Size="Size.Small" OnClick="@(() => AskMedbaseClicked.InvokeAsync())" StartIcon="@Icons.Material.Filled.AutoAwesome">
-            Ask AI
-        </MudButton>
+        <MudStack Row="true" Spacing="3" Justify="Justify.Center" AlignItems="AlignItems.Center">
+            <MudIconButton Color="Color.Default" Size="Size.Small" Icon="@Icons.Material.Filled.Edit" />
+            <MudIconButton Icon="@Icons.Material.Filled.ThumbUp" Color="Color.Default" Size="Size.Small" />
+            <MudIconButton Icon="@Icons.Material.Filled.ThumbDown" Color="Color.Default" Size="Size.Small" />
+            <MudIconButton Color="Color.Default" Size="Size.Small" OnClick="@(() => AskMedbaseClicked.InvokeAsync())" Icon="@Icons.Material.Filled.AutoAwesome" />
+        </MudStack>
     </MudStack>
 </MudPaper>
 

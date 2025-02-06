@@ -1,54 +1,92 @@
-﻿@using MedbaseLibrary.CoursesAndTopics
-@inject ICoursesAndTopics repository
-@inject NavigationManager navManager;
+﻿@using Medbase.Application.Services
+@using MedbaseComponents.Shared
+@using MedbaseLibrary.CoursesAndTopics
+@using Microsoft.AspNetCore.Components.Authorization
+@inject CoursesClient coursesClient
+@inject NotesClient notesClient
+@inject ISnackbar Snackbar
+@inject UserService userService
+@inject NavigationManager navManager
 
-@if (!CoursesList.Any())
-    {
-        <MedbaseComponents.Controls.LoadingComponent Message="Retrieving courses..." />
-    }
-    else
-    {
-        <MudGrid Class="mt-8">
-        @foreach (CourseWithNotesEssaysInfoDto item in CoursesList)
-            {
-            <MudItem xs="12" sm="6" md="3">
-                    <MudCard @onclick="() => GoToTopics(item.CourseRef)">
-                        <MudCardMedia Image="@item.ImageURL" Height="300" />
-                        <MudCardContent>
-                            <MudText Typo="Typo.h6">
-                                @item.Course
-                            </MudText>
-                            <MudText Typo="Typo.body2" Class="d-lg-block d-none">
-                                @item.Description
-                            </MudText>
-                        </MudCardContent>
-                        <MudCardActions>
-                        <MudButton Variant="Variant.Text" 
-                                Color="Color.Primary" 
-                                OnClick="() => GoToTopics(item.CourseRef)">
-                                Questions
-                        </MudButton>
-                        <MudButton 
-                            Variant="Variant.Text" 
-                            Color="Color.Primary" 
-                            Class="@(item.HasNotes.Equals(true) ? "d-block" : "d-none")"
-                            OnClick="() => GoToNotes(item.CourseRef)">
-                            Notes
-                        </MudButton>
-                        @* <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToEssays(item.CourseRef)">Essays</MudButton> *@
-                        </MudCardActions>
-                    </MudCard>
-                </MudItem>
+@if (IsBusy)
+{
+    <div class="mt-5">
+        <LoadingComponent Message="Retrieving courses..." />
+    </div>
+}
+else
+{
+    <HeaderComponent Title="Your courses" Subtitle="Courses you have selected in your preferences" />
 
-            }
-        </MudGrid>
-        
-    }
+    <MudGrid Class="mt-8">
+        <AuthorizeView>
+            <Authorized>
+                @if (CoursesList.Any())
+                {
+                    @foreach (Course item in CoursesList)
+                    {
+                        <MudItem xs="12" sm="6" md="4">
+                            <MudPaper Class="p-3" @onclick="() => GoToTopics(item.CourseRef)">
+                                <MudGrid Spacing="20">
+                                    <MudItem xs="3">
+                                        <MudImage Src="@item.ImageURL" Style="max-height:100px" />
+                                    </MudItem>
+                                    <MudItem xs="9">
+                                        <MudText Typo="Typo.h6" Align="Align.Start" Class="justify-center">
+                                            @item.Title
+                                        </MudText>
+                                    </MudItem>
+                                </MudGrid>
+                            </MudPaper>
+                        </MudItem>
+
+                    }
+                }
+                else
+                {
+                    <EmptyComponent Message="Add you haven't selected the courses you want to see." />
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="/settings">
+                        Add Courses
+                    </MudButton>
+                }
+            </Authorized>
+            <NotAuthorized>
+                <LoginBanner />
+            </NotAuthorized>
+            <Authorizing>
+                <LoadingComponent Message="Logging you in..."/>
+            </Authorizing>
+        </AuthorizeView>
+    </MudGrid>
+
+}
 
 @code {
-    private IEnumerable<CourseWithNotesEssaysInfoDto> CoursesList { get; set; } = Enumerable.Empty<CourseWithNotesEssaysInfoDto>();
+    private IEnumerable<Course> CoursesList { get; set; } = Enumerable.Empty<Course>();
+    private string userId = "";
+    bool IsBusy = false;
 
-    protected override async Task OnInitializedAsync() => CoursesList = await repository.GetCourseWithNotesEssaysInfoAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        userId = await userService.GetUserIdAsync();
+        await GetCoursesAsync();
+    }
+
+    //Get courses from api
+    private async Task GetCoursesAsync()
+    {
+        IsBusy = true;
+        var response = await coursesClient.GetCoursesByUserId(userId);
+        if (response.IsSuccess)
+        {
+            CoursesList = response.Data;
+        }
+        else
+        {
+            Snackbar.Add("Something went wrong retrieving courses...", Severity.Error);
+        }
+        IsBusy = false;
+    }
 
     private void GoToTopics(string courseRef)
     {
