@@ -21,6 +21,8 @@ jobs:
       run: dotnet workload restore
     - name: Install Medbase Library From Nuget
       run: dotnet add package MedbaseLibrary
+    - name: Install Medbase Application
+      run: dotnet add package Medbase.Application
     - name: Inject Open AI Secret
       run: echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
     - name: Build
