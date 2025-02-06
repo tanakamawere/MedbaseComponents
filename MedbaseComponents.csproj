@@ -42,11 +42,4 @@
 	<ItemGroup>
 	  <Folder Include="Pages\Questions2\" />
 	</ItemGroup>
-	<ItemGroup>
-	  <ProjectReference Include="..\Medbase.Application\Medbase.Application.csproj" />
-	  <ProjectReference Include="..\MedbaseLibrary\MedbaseLibrary.csproj" />
-	</ItemGroup>
-
-
-
 </Project>
