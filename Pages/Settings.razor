@@ -10,48 +10,36 @@
 @inject ISnackbar Snackbar;
 @attribute [Authorize]
 
-
 <MudContainer>
-    <MudTabs>
-        <MudTabPanel Text="General">
-            <MudSwitch Label="Dark Mode" T="bool" @bind-Checked="DarkMode" />
-            <MudSwitch Label="Enable Notifications" T="bool" @bind-Checked="EnableNotifications" />
-        </MudTabPanel>
+    @if (IsBusy)
+    {
+        <LoadingComponent Message="Getting preferences..." />
+    }
+    else
+    {
+        <MudText Typo="Typo.h4">Course Selection</MudText>
+        <MudPaper Class="pa-4">
+            <MudText Typo="Typo.h6">Courses you have selected already</MudText>
 
-        <MudTabPanel Text="Account">
-            <MudText Typo="Typo.h6">Manage Account</MudText>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ChangePassword">Change Password</MudButton>
-        </MudTabPanel>
+            <div class="d-flex">
+                @foreach (var item in ExistingCourses)
+                {
+                    <MudChip T="string" OnClick="() => OnExistingChipClicked(item.Id)">@item.Title</MudChip>
+                }
+            </div>
 
-        <MudTabPanel Text="Course Preferences">
-            @if (IsBusy)
-            {
-                <LoadingComponent Message="Getting preferences..." />
-            }
-            else
-            {
-                <MudText Typo="Typo.h6">Courses you have selected already</MudText>
+            <MudText Typo="Typo.h6">Available courses</MudText>
 
-                <div class="d-flex">
-                    @foreach (var item in ExistingCourses)
-                    {
-                        <MudChip T="string" OnClick="() => OnExistingChipClicked(item.Id)">@item.Title</MudChip>
-                    }
-                </div>
+            <MudChipSet T="Course">
+                @foreach (var item in AvailableCourses)
+                {
+                    <MudChip T="string" OnClick="() => OnAvailableChipClicked(item.Id)">@item.Title</MudChip>
+                }
+            </MudChipSet>
 
-                <MudText Typo="Typo.h6">Available courses</MudText>
-
-                <MudChipSet T="Course">
-                    @foreach (var item in AvailableCourses)
-                    {
-                        <MudChip T="string" OnClick="() => OnAvailableChipClicked(item.Id)">@item.Title</MudChip>
-                    }
-                </MudChipSet>
-
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SavePreferences">Save Preferences</MudButton>
-            }
-        </MudTabPanel>
-    </MudTabs>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SavePreferences">Save Preferences</MudButton>
+        </MudPaper>
+    }
 </MudContainer>
 
 @code {
