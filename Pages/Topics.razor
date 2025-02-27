@@ -60,8 +60,7 @@
                                 </MudCardHeader>
                                 <MudCardActions>
                                     <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToQuestions(item)">True/False Questions</MudButton>
-                                    <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToSingleBestQuestions(item)">Single Best Questions</MudButton>
-                                    <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToEssays(item.TopicRef)">Essays</MudButton>
+                                    <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => Question2Types(item)">New Questions</MudButton>
                                     @* <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => Download(item)">Download</MudButton> *@
                                 </MudCardActions>
                             </MudCard>
@@ -207,14 +206,7 @@
     {
         if (string.IsNullOrEmpty(source))
         {
-            if (topic.QuestionsVersion.Equals(QuestionsVersion.v1))
-            {
-                navManager.NavigateTo($"/questions/{topic.TopicRef}");
-            }
-            else
-            {
-                navManager.NavigateTo($"/questions2/{topic.TopicRef}");
-            }
+            navManager.NavigateTo($"/questions/{topic.TopicRef}");
         }
         else
         {
@@ -222,13 +214,8 @@
         }
     }
 
-    private void GoToSingleBestQuestions(Topic topic)
+    private void Question2Types(Topic topic)
     {
         navManager.NavigateTo($"/questions2/{topic.TopicRef}");
-    }
-
-    private void GoToEssays(int topicRef)
-    {
-        navManager.NavigateTo($"/essays/topic/{topicRef}");
     }
 }

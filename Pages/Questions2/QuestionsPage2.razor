@@ -1,6 +1,7 @@
 @page "/questions2/{topicRef:int}"
 @page "/questions2/{topicRef:int}/{source}"
 @using MedbaseComponents.Controls
+@using MedbaseComponents.Shared
 @using MedbaseLibrary.Questions
 @using MedbaseLibrary.Questions.Models
 @inject IDialogService DialogService
@@ -54,22 +55,35 @@
     {
         <div class="floating-toolbar d-flex justify-content-center fixed-bottom mb-5">
             <QuestionsToolbar @ref="questionsToolbar" 
-                CloseSearch="@CloseSearch" 
-                CurrentPage="@questionsPagedWithTopic.CurrentPage" 
-                TotalPages="@questionsPagedWithTopic.Pages" 
-                OnPageChange="@GetQuestions" 
-                OpenSearch="@OpenSearchDialog" />
+            CloseSearch="@CloseSearch" 
+            CurrentPage="@questionsPagedWithTopic.CurrentPage" 
+            TotalPages="@questionsPagedWithTopic.Pages" 
+            OnPageChange="@GetQuestions" 
+            OpenSearch="@OpenSearchDialog" />
         </div>
 
         <div style="margin-bottom:75px;" class="m-2 position-fixed bottom-0 end-0 justify-content-center @(showToolbar.Equals(true) ? "d-none" : "d-block")">
             <MudFab Color="Color.Primary"
-                    StartIcon="@Icons.Material.Filled.More"
-                    OnClick="OpenToolbar"
-                    Label="Show Toolbar"
-                    Class="object-left" />
+            StartIcon="@Icons.Material.Filled.More"
+            OnClick="OpenToolbar"
+            Label="Show Toolbar"
+            Class="object-left" />
         </div>
         <div class="col-lg-6 col-md-8 mx-auto fw-normal" style="margin-bottom:150px;">
-            <Virtualize Items="@questionsPagedWithTopic.QuestionsWithTopic.QuestionSets.ToList()" Context="questionSet" TItem="QuestionSet">
+
+            <!--Drop down for question type-->
+            <MudSelect Label="Filter By Question Type"
+            T="QuestionType"
+            Class="ma-1"
+            Variant="Variant.Outlined"
+            ValueChanged="OnQuestionTypeChanged">
+                @foreach (QuestionType item in questionTypes)
+                {
+                    <MudSelectItem Value="@item">@item</MudSelectItem>
+                }
+            </MudSelect>
+
+            <Virtualize Items="@questionSets" Context="questionSet" TItem="QuestionSet">
                 <ItemContent>
                     <MudCard class="mb-2">
                         <MudCardContent>
@@ -90,10 +104,10 @@
                                             @foreach (var item in question.QuestionOptionRelationships)
                                             {
                                                 <QuestionAnswerTemplate QuestionMain="@questionMain"
-                                                                        Child="@question.OptionText"
-                                                                        Answer="@item.IsCorrect"
-                                                                        Explanation="@item.Explanation"
-                                                                        AskMedbaseClicked="@(() => AskAIQuestion(questionMain, question.OptionText, item.IsCorrect))" />
+                                                Child="@question.OptionText"
+                                                Answer="@item.IsCorrect"
+                                                Explanation="@item.Explanation"
+                                                AskMedbaseClicked="@(() => AskAIQuestion(questionMain, question.OptionText, item.IsCorrect))" />
                                             }
                                         </div>
                                     }
@@ -110,21 +124,55 @@
                                     <MudText>
                                         @($"{question.Label.ToLower()}. {question.OptionText}")
                                     </MudText>
-                                    <div style="display:@(Answers == 1 && qts == question.Id ? "block" : "none")">
-                                        @foreach (var item in question.QuestionOptionRelationships)
+
+
+
+                                    @foreach (var item in question.QuestionOptionRelationships)
+                                    {
+                                        if (item.IsCorrect)
                                         {
-                                            <QuestionAnswerTemplate QuestionMain="@questionMain"
-                                                                    Child="@question.OptionText"
-                                                                    Answer="@item.IsCorrect"
-                                                                    Explanation="@item.Explanation"
-                                                                    AskMedbaseClicked="@(() => AskAIQuestion(questionMain, question.OptionText, item.IsCorrect))" />
+                                            <div style="display:@(Answers == 1 && qts == questionSet.Id ? "block" : "none")">
+                                                <QuestionAnswerTemplate QuestionMain="@questionMain"
+                                                Child="@question.OptionText"
+                                                Answer="@item.IsCorrect"
+                                                ShowAnswer="false"
+                                                Explanation="@item.Explanation"
+                                                AskMedbaseClicked="@(() => AskAIQuestion(questionMain, question.OptionText, item.IsCorrect))" />
+                                            </div>
                                         }
-                                    </div>
+                                    }
+                                }
+                            }
+                            else if (questionSet.Type.Equals(QuestionType.Structured))
+                            {
+                                var questionMain = questionSet.Questions[0].QuestionText;
+                                <MudText Class="fw-bold">
+                                    @($"{@questionMain}")
+                                </MudText>
+                                @foreach (var question in questionSet.QuestionOptions)
+                                {
+                                    <MudText>
+                                        @($"{question.Label.ToLower()}. {question.OptionText}")
+                                    </MudText>
+
+
+
+                                    @foreach (var item in question.QuestionOptionRelationships)
+                                    {
+                                        <div style="display:@(Answers == 1 && qts == questionSet.Id ? "block" : "none")">
+                                            <QuestionAnswerTemplate QuestionMain="@questionMain"
+                                            Child="@question.OptionText"
+                                            Answer="item.IsCorrect"
+                                            ShowAnswer="false"
+                                            Explanation="@item.Explanation"
+                                            AskMedbaseClicked="@(() => AskAIQuestion(questionMain, question.OptionText, item.IsCorrect))" />
+                                        </div>
+                                    }
                                 }
                             }
                         </MudCardContent>
                         <MudCardActions class="justify-content-end">
-                            <MudButton Variant="Variant.Text" OnClick="() => ShowAnswers(questionSet.Id)" Color="Color.Primary">Answers</MudButton>
+                            <MudButton Variant="Variant.Text" OnClick="() => ShowAnswers(questionSet.Id)" Color="Color.Primary">Show Answer(s)</MudButton>
                         </MudCardActions>
                     </MudCard>
                 </ItemContent>
@@ -149,6 +197,10 @@
     private string searchTerm = "";
     private QuestionsToolbar questionsToolbar;
     public int qts;
+    private List<QuestionSet> questionSets = new();
+
+    //Enums for question type drop down
+    private List<QuestionType> questionTypes = Enum.GetValues(typeof(QuestionType)).Cast<QuestionType>().ToList();
 
     private string description = "Questions on your chosen topic";
     private string title = "Questions | Medbase";
@@ -201,6 +253,9 @@
             }
 #endif
         }
+        //Assign questionSets from questionsPaged with Topic
+        questionSets = questionsPagedWithTopic.QuestionsWithTopic.QuestionSets.ToList();
+
         isLoading = false;
     }
     private void OpenSearchBar() => searchBarOpen = !searchBarOpen;
@@ -284,5 +339,32 @@
     private async Task CloseSearch()
     {
         navManager.NavigateTo(navManager.Uri, true);
+    }
+
+    //Check for question type and set the number of options
+    private void OnQuestionTypeChanged(QuestionType questionType)
+    {
+        switch (questionType)
+        {
+            case QuestionType.TrueFalse:
+                questionSets = questionsPagedWithTopic.QuestionsWithTopic.QuestionSets.Where(x => x.Type == QuestionType.TrueFalse).ToList();
+                break;
+            case QuestionType.SingleBest:
+                questionSets = questionsPagedWithTopic.QuestionsWithTopic.QuestionSets.Where(x => x.Type == QuestionType.SingleBest).ToList();
+                break;
+            case QuestionType.TableMatching:
+                questionSets = questionsPagedWithTopic.QuestionsWithTopic.QuestionSets.Where(x => x.Type == QuestionType.TableMatching).ToList();
+                break;
+            case QuestionType.Structured:
+                questionSets = questionsPagedWithTopic.QuestionsWithTopic.QuestionSets.Where(x => x.Type == QuestionType.Structured).ToList();
+                break;
+            case QuestionType.Essay:
+                questionSets = questionsPagedWithTopic.QuestionsWithTopic.QuestionSets.Where(x => x.Type == QuestionType.Essay).ToList();
+                break;
+            default:
+                break;
+        }
+
+        StateHasChanged();
     }
 }

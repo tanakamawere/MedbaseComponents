@@ -2,7 +2,7 @@
 <MudPaper Outlined="true" Class="p-1">
     <MudStack Spacing="1" Justify="Justify.Center">
         <MudText Align="Align.Center">
-            <span class="fw-bolder">
+            <span class="@(ShowAnswer ? "d-block" : "d-none") fw-bolder">
                 @Answer.ToString()
             </span>
             <span class="@(string.IsNullOrWhiteSpace(Explanation) ? "d-none" : "d-block")">
@@ -29,4 +29,6 @@
     public string Explanation { get; set; } = "";
     [Parameter]
     public EventCallback<string> AskMedbaseClicked { get; set; }
+    [Parameter]
+    public bool ShowAnswer { get; set; } = true;
 }

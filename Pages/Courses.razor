@@ -16,11 +16,10 @@
 }
 else
 {
-    <HeaderComponent Title="Your courses" Subtitle="Courses you have selected in your preferences" />
-
     <MudGrid Class="mt-8">
         <AuthorizeView>
             <Authorized>
+                <HeaderComponent Title="Your courses" Subtitle="Courses you have selected in your preferences" />
                 @if (CoursesList.Any())
                 {
                     @foreach (Course item in CoursesList)
