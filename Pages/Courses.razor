@@ -16,10 +16,10 @@
 }
 else
 {
-    <MudGrid Class="mt-8">
-        <AuthorizeView>
-            <Authorized>
-                <HeaderComponent Title="Your courses" Subtitle="Courses you have selected in your preferences" />
+    <AuthorizeView>
+        <Authorized>
+            <HeaderComponent Title="Your courses" Subtitle="Courses you have selected in your preferences" />
+            <MudGrid Class="mt-8">
                 @if (CoursesList.Any())
                 {
                     @foreach (Course item in CoursesList)
@@ -48,16 +48,16 @@ else
                         Add Courses
                     </MudButton>
                 }
-            </Authorized>
-            <NotAuthorized>
-                <LoginBanner />
-            </NotAuthorized>
-            <Authorizing>
-                <LoadingComponent Message="Logging you in..."/>
-            </Authorizing>
-        </AuthorizeView>
-    </MudGrid>
+            </MudGrid>
 
+        </Authorized>
+        <NotAuthorized>
+            <LoginBanner />
+        </NotAuthorized>
+        <Authorizing>
+            <LoadingComponent Message="Logging you in..." />
+        </Authorizing>
+    </AuthorizeView>
 }
 
 @code {
