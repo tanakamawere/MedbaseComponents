@@ -7,7 +7,7 @@
 	  <UseMauiEssentials>true</UseMauiEssentials>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
 	  <PackageId>MedbaseComponents</PackageId>
-	  <Version>2.0</Version>
+	  <Version>2.1</Version>
 	  <Authors>Tanaka Mawere</Authors>
 	  <Author>Tanaka Mawere</Author>
 	  <PackageIcon>medbase_logo.png</PackageIcon>
@@ -41,9 +41,5 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="Pages\Questions2\" />
-	</ItemGroup>
-	<ItemGroup>
-	  <ProjectReference Include="..\Medbase.Application\Medbase.Application.csproj" />
-	  <ProjectReference Include="..\MedbaseLibrary\MedbaseLibrary.csproj" />
 	</ItemGroup>
 </Project>
