@@ -10,9 +10,8 @@
             </span>
         </MudText>
         <MudStack Row="true" Spacing="3" Justify="Justify.Center" AlignItems="AlignItems.Center">
-            <MudIconButton Color="Color.Default" Size="Size.Small" Icon="@Icons.Material.Filled.Edit" />
-            <MudIconButton Icon="@Icons.Material.Filled.ThumbUp" Color="Color.Default" Size="Size.Small" />
-            <MudIconButton Icon="@Icons.Material.Filled.ThumbDown" Color="Color.Default" Size="Size.Small" />
+            <MudIconButton Color="Color.Default" Size="Size.Small" OnClick="@(() => EditClicked.InvokeAsync())" Icon="@Icons.Material.Filled.Edit" />
+            <MudIconButton Icon="@Icons.Material.Filled.Feedback" OnClick="@(() => FeedbackClicked.InvokeAsync())" Color="Color.Default" Size="Size.Small" />
             <MudIconButton Color="Color.Default" Size="Size.Small" OnClick="@(() => AskMedbaseClicked.InvokeAsync())" Icon="@Icons.Material.Filled.AutoAwesome" />
         </MudStack>
     </MudStack>
@@ -28,7 +27,11 @@
     [Parameter]
     public string Explanation { get; set; } = "";
     [Parameter]
+    public bool ShowAnswer { get; set; } = true;
+    [Parameter]
     public EventCallback<string> AskMedbaseClicked { get; set; }
     [Parameter]
-    public bool ShowAnswer { get; set; } = true;
+    public EventCallback<string> EditClicked { get; set; }
+    [Parameter]
+    public EventCallback<string> FeedbackClicked { get; set; }
 }

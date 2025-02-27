@@ -290,9 +290,7 @@
     private async Task AskAIQuestion(string questionMain, string child, bool answer)
     {
         var parameters = new DialogParameters<AskAiDialog>();
-        parameters.Add(x => x.questionMain, questionMain);
-        parameters.Add(x => x.child, child);
-        parameters.Add(x => x.answer, answer);
+        parameters.Add(x => x.questionTextFromPage, $"Why is it { answer.ToString().ToLower() } that { questionMain.ToLower()}, { child.ToLower()}");
         var options = new DialogOptions()
             {
                 CloseButton = false,

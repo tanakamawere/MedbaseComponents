@@ -1,10 +1,12 @@
 @page "/questions2/{topicRef:int}"
 @page "/questions2/{topicRef:int}/{source}"
+@using Medbase.Application.Services
 @using MedbaseComponents.Controls
 @using MedbaseComponents.Shared
 @using MedbaseLibrary.Questions
 @using MedbaseLibrary.Questions.Models
 @inject IDialogService DialogService
+@inject UserService userService
 @inject IQuestions questionsRepository
 @inherits BasePage
 @inject NavigationManager navManager
@@ -84,6 +86,9 @@
             </MudSelect>
 
             <Virtualize Items="@questionSets" Context="questionSet" TItem="QuestionSet">
+                <EmptyContent>
+                    <EmptyComponent Message="Oops, we have nothing on this. Try a different question type or a different topic" />
+                </EmptyContent>
                 <ItemContent>
                     <MudCard class="mb-2">
                         <MudCardContent>
@@ -104,10 +109,12 @@
                                             @foreach (var item in question.QuestionOptionRelationships)
                                             {
                                                 <QuestionAnswerTemplate QuestionMain="@questionMain"
+                                                    EditClicked="@(() => OpenQuestionFeedbackDialog(questionSet.Id))"
+                                                                        FeedbackClicked="@(() => OpenQuestionRatingDialog(questionSet.Id))"
                                                 Child="@question.OptionText"
                                                 Answer="@item.IsCorrect"
                                                 Explanation="@item.Explanation"
-                                                AskMedbaseClicked="@(() => AskAIQuestion(questionMain, question.OptionText, item.IsCorrect))" />
+                                                AskMedbaseClicked="@(() => AskAIQuestion($"Why is it {item.IsCorrect.ToString().ToLower()} that {questionMain.ToLower()}, {question.OptionText.ToLower()}"))" />
                                             }
                                         </div>
                                     }
@@ -133,11 +140,13 @@
                                         {
                                             <div style="display:@(Answers == 1 && qts == questionSet.Id ? "block" : "none")">
                                                 <QuestionAnswerTemplate QuestionMain="@questionMain"
+                                                                        EditClicked="@(() => OpenQuestionFeedbackDialog(questionSet.Id))"
+                                                                        FeedbackClicked="@(() => OpenQuestionRatingDialog(questionSet.Id))"
                                                 Child="@question.OptionText"
                                                 Answer="@item.IsCorrect"
                                                 ShowAnswer="false"
                                                 Explanation="@item.Explanation"
-                                                AskMedbaseClicked="@(() => AskAIQuestion(questionMain, question.OptionText, item.IsCorrect))" />
+                                                AskMedbaseClicked="@(() => AskAIQuestion($"Why is it {item.IsCorrect} that the answer to {questionMain} is {question.OptionText}"))" />
                                             </div>
                                         }
                                     }
@@ -161,11 +170,13 @@
                                     {
                                         <div style="display:@(Answers == 1 && qts == questionSet.Id ? "block" : "none")">
                                             <QuestionAnswerTemplate QuestionMain="@questionMain"
+                                                                    EditClicked="@(() => OpenQuestionFeedbackDialog(questionSet.Id))"
+                                                                    FeedbackClicked="@(() => OpenQuestionRatingDialog(questionSet.Id))"
                                             Child="@question.OptionText"
                                             Answer="item.IsCorrect"
                                             ShowAnswer="false"
                                             Explanation="@item.Explanation"
-                                            AskMedbaseClicked="@(() => AskAIQuestion(questionMain, question.OptionText, item.IsCorrect))" />
+                                            AskMedbaseClicked="@(() => AskAIQuestion($"{questionMain} {question.OptionText}"))" />
                                         </div>
                                     }
                                 }
@@ -273,6 +284,34 @@
         DialogService.Show<CorrectionsDialog>("Submit Answer Correction", parameters, options);
     }
 
+    private async Task OpenQuestionFeedbackDialog(int questionId)
+    {
+        var parameters = new DialogParameters<QuestionFeedbackDialog>();
+        parameters.Add(x => x.questionId, questionId);
+        parameters.Add(x => x.userId, await userService.GetUserIdAsync());
+        var options = new DialogOptions()
+            {
+                CloseButton = true,
+                MaxWidth = MaxWidth.ExtraLarge,
+                Position = DialogPosition.Center,
+            };
+        DialogService.Show<QuestionFeedbackDialog>("Submit Feedback", parameters, options);
+    }
+
+    private async Task OpenQuestionRatingDialog(int questionId)
+    {
+        var parameters = new DialogParameters<QuestionRatingDialog>();
+        parameters.Add(x => x.questionId, questionId);
+        parameters.Add(x => x.userId, await userService.GetUserIdAsync());
+        var options = new DialogOptions()
+            {
+                CloseButton = true,
+                MaxWidth = MaxWidth.ExtraSmall,
+                Position = DialogPosition.Center,
+            };
+        DialogService.Show<QuestionRatingDialog>("Rate Question", parameters, options);
+    }
+
     private async Task OpenSearchDialog()
     {
         var parameters = new DialogParameters<SearchQuestionsDialog>();
@@ -317,12 +356,10 @@
         }
     }
 
-    private async Task AskAIQuestion(string questionMain, string child, bool answer)
+    private async Task AskAIQuestion(string question)
     {
         var parameters = new DialogParameters<AskAiDialog>();
-        parameters.Add(x => x.questionMain, questionMain);
-        parameters.Add(x => x.child, child);
-        parameters.Add(x => x.answer, answer);
+        parameters.Add(x => x.questionTextFromPage, question);
         var options = new DialogOptions()
             {
                 CloseButton = false,
@@ -344,6 +381,7 @@
     //Check for question type and set the number of options
     private void OnQuestionTypeChanged(QuestionType questionType)
     {
+
         switch (questionType)
         {
             case QuestionType.TrueFalse:

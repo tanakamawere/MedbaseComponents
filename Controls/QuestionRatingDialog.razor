@@ -1,0 +1,53 @@
+@inject ISnackbar Snackbar
+@inject QuestionRatingClient questionRatingClient
+<MudDialog>
+    <DialogContent>
+
+        <MudRating @bind-SelectedValue="Rating" Size="Size.Large" MaxValue="5" />
+        <MudText Typo="Typo.body2">1 for extremely easy, 5 for very hard</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
+        <MudButton Color="Color.Primary" OnClick="PostRatingAsync">Submit</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter]
+    public int questionId { get; set; } = 0;
+    [Parameter]
+    public string userId { get; set; } = "";
+    private int Rating = 0;
+    private Snackbar snackbar;
+    async void PostRatingAsync()
+    {
+        if (Rating == 0)
+        {
+            Snackbar.Add("Please enter a rating", Severity.Error);
+            return;
+        }
+
+        QuestionRating questionRating = new QuestionRating
+        {
+            UserId = userId,
+            QuestionId = questionId,
+            Rating = Rating,
+            CreatedAt = DateTime.Now
+        };
+        var response = await questionRatingClient.AddQuestionRatingAsync(questionRating);
+
+        if (response.IsSuccess)
+        {
+            Snackbar.Add("Thank you for your feedback.", Severity.Success);
+            Close();
+        }
+        else
+        {
+            Snackbar.Add("Failed to submit feedback. Please try again.", Severity.Error);
+        }
+    }
+
+    void Close() => MudDialog.Close();
+    void Cancel() => MudDialog.Cancel();
+}

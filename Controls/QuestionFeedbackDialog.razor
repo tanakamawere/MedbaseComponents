@@ -1,0 +1,56 @@
+@inject ISnackbar Snackbar
+@inject QuestionFeedbackClient questionFeedbackClient
+
+<MudDialog>
+    <DialogContent>
+
+        <MudTextField T="string" Label="What can we improve this question?" @bind-Value="FeedbackText" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
+        <MudButton Color="Color.Primary" OnClick="PostFeedbackAsync">Submit</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter]
+    public int questionId { get; set; } = 0;
+    [Parameter]
+    public string userId { get; set; } = "";
+    private string FeedbackText { get; set; }
+    private Snackbar snackbar;
+
+
+    async void PostFeedbackAsync()
+    {
+        if (string.IsNullOrWhiteSpace(FeedbackText))
+        {
+            Snackbar.Add("Please enter feedback", Severity.Error);
+            return;
+        }
+
+        UserQuestionFeedback userQuestionFeedback = new UserQuestionFeedback
+        {
+                UserId = userId,
+            QuestionId = questionId,
+            FeedbackText = FeedbackText,
+            Resolved = false,
+                CreatedAt = DateTime.Now
+        };
+        var response = await questionFeedbackClient.AddQuestionFeedbackAsync(userQuestionFeedback);
+
+        if (response.IsSuccess)
+        {
+            Snackbar.Add("Thank you for your feedback.", Severity.Success);
+            Close();
+        }
+        else
+        {
+            Snackbar.Add("Failed to submit feedback. Please try again.", Severity.Error);
+        }
+    }
+
+    void Close() => MudDialog.Close();
+    void Cancel() => MudDialog.Cancel();
+}

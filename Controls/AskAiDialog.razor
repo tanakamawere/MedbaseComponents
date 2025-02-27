@@ -4,9 +4,11 @@
 @using Azure
 @using System.Net.Http.Json 
 @inject IApiRepository apiRepository
+@using MedbaseLibrary.Interfaces
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 @inject AuthenticationStateProvider authState
+@inject AiClient aiClient
 @inherits BasePage
 @using Markdig
 @using System.Text
@@ -25,17 +27,17 @@
                 <div class="@(limitIsReached ? "d-none" : "d-block")">
                     <div class="text-center">
                         <MudTextField T="string"
-                                      @ref="textField"
-                                      Disabled="@isLoading"
-                                      @bind-Text="question"
-                                      Variant="Variant.Outlined"
-                                      Label="Edit your question"
-                                      Lines="5" />
+                        @ref="textField"
+                        Disabled="@isLoading"
+                        @bind-Text="question"
+                        Variant="Variant.Outlined"
+                        Label="Edit your question"
+                        Lines="5" />
                         <MudProgressLinear Color="Color.Primary"
-                                           Rounded="true"
-                                           Class="my-3"
-                                           Size="Size.Small"
-                                           Value="(usageCount / Helpers.MaxFreeAIUsage) * 100" />
+                        Rounded="true"
+                        Class="my-3"
+                        Size="Size.Small"
+                        Value="(usageCount / Helpers.MaxFreeAIUsage) * 100" />
                     </div>
                     <MudPaper Class="shadow border">
                         <div class="m-2 p-5">
@@ -71,8 +73,8 @@
             <DialogActions>
                 <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
                 <MudButton Color="Color.Primary"
-                           Disabled="@isLoading"
-                           OnClick="SendOpenAI">Ask</MudButton>
+                Disabled="@isLoading"
+                           OnClick="SendPromptAsync">Ask</MudButton>
             </DialogActions>
         </MudDialog>
     </Authorized>
@@ -83,11 +85,7 @@
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
     [Parameter]
-    public string questionMain { get; set; } = "";
-    [Parameter]
-    public string child { get; set; } = "";
-    [Parameter]
-    public bool answer { get; set; }
+    public string questionTextFromPage { get; set; } = "";
     private string question = "";
     private bool isLoading = false;
     private StringBuilder aiAnswerStringBuilder = new();
@@ -97,88 +95,26 @@
     private SubscriptionStatus subscriptionStatus;
     private MudTextField<string> textField;
     private AuthenticationState authenticationState;
-    //private OpenAIClient client;
     private string usageIndicator = "";
-    //private List<ChatRequestMessage> chatRequestMessages;
 
     protected override async Task OnInitializedAsync()
     {
-        //client = new OpenAIClient(MedbaseComponents.Shared.Helpers.OpenApiKey);
 
         WithAnswerToggle();
     }
 
-    // private async Task ValidateAIUsage()
-    // {
-    //     if (string.IsNullOrWhiteSpace(question))
-    //     {
-    //         textField.Error = true;
-    //         textField.ErrorText = "Please enter a message";
-    //     }
-    //     else if (!checkForInternet.InternetAvailable())
-    //     {
-    //         textField.Error = true;
-    //         textField.ErrorText = "Please connect to the internet to use Medbase AI";
-    //     }
-    //     else
-    //     {
-    //         isLoading = true;
-    //         isSubscribed = bool.Parse(authenticationState.User.Claims.FirstOrDefault(c => c.Type == CustomClaimTypes.SubscriptionActive).Value);
-
-    //         subscriptionStatus = await Helpers.CheckForSubscriptionStatus(apiRepository, isSubscribed, authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
-
-    //         if (subscriptionStatus.Equals(SubscriptionStatus.LimitReached))
-    //         {
-    //             //Limit has been reached
-    //             subscriptionStatus = SubscriptionStatus.LimitReached;
-    //             limitIsReached = true;
-    //             isLoading = false;
-    //             StateHasChanged();
-    //         }
-    //         else if (subscriptionStatus.Equals(SubscriptionStatus.PremiumUser))
-    //         {
-    //             subscriptionStatus = SubscriptionStatus.PremiumUser;
-    //             SendOpenAI();
-    //         }
-    //         else
-    //         {
-    //             subscriptionStatus = SubscriptionStatus.FreeUser;
-    //             SendOpenAI();
-    //         }
-    //     }
-    // }
-
-    async void SendOpenAI()
+    async void SendPromptAsync()
     {
         isLoading = true;
         try
         {
-            // var chatCompletionsOptions = new ChatCompletionsOptions()
-            // {
-            //     DeploymentName = "gpt-3.5-turbo-0125",
-            //     Messages =
-            //     {
-            //         new ChatRequestSystemMessage(Helpers.SystemPrompt),
-            //         new ChatRequestUserMessage(question)
-            //     },
-            //     MaxTokens = 150,
-            // };
 
-            // This is the non-streaming version of the API
-            // Response<ChatCompletions> response = await client.GetChatCompletionsAsync(chatCompletionsOptions);
-            // aiAnswer = response.Value.Choices[0].Message.Content;
+            var response = await aiClient.GetGeminiCompletionAsync($"{Helpers.SystemPrompt} - {question}");
 
-            //This is the streaming version of the API
-            // await foreach (StreamingChatCompletionsUpdate item in client.GetChatCompletionsStreaming(chatCompletionsOptions))
-            // {
-            //     if (!string.IsNullOrEmpty(item.ContentUpdate))
-            //     {
-            //         isLoading = false;
-            //         aiAnswerStringBuilder.Append(item.ContentUpdate);
-            //         StateHasChanged();
-            //         await Task.Delay(100);
-            //     }
-            // }
+            if (response.IsSuccess)
+            {
+                aiAnswerStringBuilder.Append(response.Data.ToString());
+            }
         }
         catch (Exception ex)
         {
@@ -191,38 +127,10 @@
         }
     }
 
-    // private async Task UpdateAICredits()
-    // {
-    //     //Check if subscription status is premium
-    //     switch (subscriptionStatus)
-    //     {
-    //         case SubscriptionStatus.PremiumUser:
-    //             usageIndicator = subscriptionStatus.ToString();
-    //             break;
-    //         case SubscriptionStatus.LimitReached:
-    //             usageIndicator = subscriptionStatus.ToString();
-    //             break;
-    //         case SubscriptionStatus.FreeUser:
-    //             usageCount = await apiRepository.GetUserUsageCount(authenticationState.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
-    //             usageIndicator = $"{usageCount} / {Helpers.MaxFreeAIUsage} free daily AI credits left";
-    //             break;
-    //         default:
-    //             usageIndicator = "";
-    //             break;
-    //     }
-    // }
-
     private void WithAnswerToggle()
     {
         question = "";
-        question = $"Why is it {answer.ToString().ToLower()} that {questionMain.ToLower()}, {child.ToLower()}";
-        StateHasChanged();
-    }
-
-    private void WithoutAnswerToggle()
-    {
-        question = "";
-        question = $"True or false: {questionMain.ToLower()}, {child.ToLower()}";
+        question = questionTextFromPage;
         StateHasChanged();
     }
 
