@@ -1,0 +1,45 @@
+@page "/upload"
+@using Medbase.Application.Services
+@inject FileStorageClient fileStorageClient
+@inject UserService userService
+
+<h3>File Upload</h3>
+
+<MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
+    <ActivatorContent>
+        <MudButton Variant="Variant.Filled"
+        Color="Color.Primary"
+        StartIcon="@Icons.Material.Filled.CloudUpload">
+            Upload Files
+        </MudButton>
+    </ActivatorContent>
+</MudFileUpload>
+
+<MudButton OnClick="UploadAsync">
+    <MudIcon Icon="@Icons.Material.Filled.CloudUpload"/>
+    Upload Files
+</MudButton>
+
+@code {
+
+    private async Task UploadFile(InputFileChangeEventArgs e)
+    {
+    }
+
+    IList<IBrowserFile> _files = new List<IBrowserFile>();
+    private void UploadFiles(IBrowserFile file)
+    {
+        _files.Add(file);
+        //TODO upload the files to the server
+    }
+
+    private async Task UploadAsync()
+    {
+        foreach (var file in _files)
+        {
+            var fileStream = file.OpenReadStream();
+            var fileName = file.Name;
+            await fileStorageClient.UploadFileAsync(fileStream, fileName, await userService.GetUserIdAsync());
+        }
+    }
+}

@@ -1,4 +1,6 @@
-﻿@using Medbase.Application.Services
+﻿@page "/courses/{id:int}"
+
+@using Medbase.Application.Services
 @using MedbaseComponents.Shared
 @using MedbaseLibrary.CoursesAndTopics
 @using Microsoft.AspNetCore.Components.Authorization
@@ -7,6 +9,7 @@
 @inject ISnackbar Snackbar
 @inject UserService userService
 @inject NavigationManager navManager
+@inject ProgramsClient programsClient
 
 @if (IsBusy)
 {
@@ -16,59 +19,79 @@
 }
 else
 {
-    <AuthorizeView>
-        <Authorized>
-            <HeaderComponent Title="Your courses" Subtitle="Courses you have selected in your preferences" />
-            <MudGrid Class="mt-8">
-                @if (CoursesList.Any())
-                {
-                    @foreach (Course item in CoursesList)
-                    {
-                        <MudItem xs="12" sm="6" md="4">
-                            <MudPaper Class="p-3" @onclick="() => GoToTopics(item.CourseRef)">
-                                <MudGrid Spacing="20">
-                                    <MudItem xs="3">
-                                        <MudImage Src="@item.ImageURL" Style="max-height:100px" />
-                                    </MudItem>
-                                    <MudItem xs="9">
-                                        <MudText Typo="Typo.h6" Align="Align.Start" Class="justify-center">
-                                            @item.Title
-                                        </MudText>
-                                    </MudItem>
-                                </MudGrid>
-                            </MudPaper>
-                        </MudItem>
+    <MudContainer MaxWidth="MaxWidth.Large">
+        @if (id != 0)
+        {
+            <HeaderComponent Title="@($"Courses")" Subtitle="Courses that power your program" />
+        }
 
-                    }
-                }
-                else
+        <MudGrid Class="mt-8">
+            @if (CoursesList.Any())
+            {
+                @foreach (Course item in CoursesList)
                 {
-                    <EmptyComponent Message="Add you haven't selected the courses you want to see." />
-                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="/settings">
-                        Add Courses
-                    </MudButton>
-                }
-            </MudGrid>
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudPaper Class="p-3" @onclick="() => GoToTopics(item.CourseRef)">
+                            <MudGrid Spacing="20">
+                                <MudItem xs="3">
+                                    <MudImage Src="@item.ImageURL" Style="max-height:100px" />
+                                </MudItem>
+                                <MudItem xs="9">
+                                    <MudText Typo="Typo.h6" Align="Align.Start" Class="justify-center">
+                                        @item.Title
+                                    </MudText>
+                                </MudItem>
+                            </MudGrid>
+                        </MudPaper>
+                    </MudItem>
 
-        </Authorized>
-        <NotAuthorized>
-            <LoginBanner />
-        </NotAuthorized>
-        <Authorizing>
-            <LoadingComponent Message="Logging you in..." />
-        </Authorizing>
-    </AuthorizeView>
+                }
+            }
+            else if (!CoursesList.Any() && !IsBusy)
+            {
+                <EmptyComponent Message="Add you haven't selected the courses you want to see." />
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="/settings">
+                    Add Courses
+                </MudButton>
+            }
+        </MudGrid>
+    </MudContainer>
 }
 
 @code {
+    [Parameter]
+    public int id { get; set; } = 0;
+
     private IEnumerable<Course> CoursesList { get; set; } = Enumerable.Empty<Course>();
     private string userId = "";
     bool IsBusy = false;
 
+
     protected override async Task OnInitializedAsync()
     {
-        userId = await userService.GetUserIdAsync();
-        await GetCoursesAsync();
+        if (id.Equals(0))
+        {
+            if (await userService.IsLoggedIn())
+            {
+                userId = await userService.GetUserIdAsync();
+                await GetCoursesAsync();
+            }
+        }
+        else
+        {
+            await GetProgramForCourses();
+        }
+    }
+    //Get courses from a program
+    private async Task GetProgramForCourses()
+    {
+        IsBusy = true;
+        var response = await programsClient.GetProgramByIdAsync(id);
+        if (response.IsSuccess)
+        {
+            CoursesList = response.Data.Courses;
+        }
+        IsBusy = false;
     }
 
     //Get courses from api

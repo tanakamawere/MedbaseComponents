@@ -1,0 +1,61 @@
+@page "/explore"
+@using MedbaseComponents.Shared
+@inject ProgramsClient programsClient
+@inject NavigationManager navManager
+
+<MudContainer Class="mt-5">
+    @if (loading)
+    {
+        <LoadingComponent Message="Getting info from the database..." />
+    }
+    else
+    {
+
+        <HeaderComponent Title="Explore Medbase" Subtitle="See all that Medbase has to offer" />
+        <div class="row gx-5">
+            <Virtualize Items="Programs" Context="program" TItem="ProgramModel">
+                <ItemContent>
+                    <div class="col-lg-4 mb-5">
+                        <MudCard @onclick="() => GoToCourses(program.Id)">
+                            <MudCardHeader>
+                                <CardHeaderContent>
+                                    <MudText Typo="Typo.h5">@program.Name</MudText>
+                                </CardHeaderContent>
+                            </MudCardHeader>
+                        </MudCard>
+                    </div>
+                </ItemContent>
+            </Virtualize>
+        </div>
+    }
+</MudContainer>
+
+@code {
+    private bool loading = false;
+    private string userId = "";
+    private List<ProgramModel> Programs = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetProgramsAsync();
+    }
+
+    private async Task GetProgramsAsync()
+    {
+        loading = true;
+
+        var response = await programsClient.GetProgramsAsync();
+
+        if (response.IsSuccess)
+        {
+            Programs = response.Data.ToList();
+        }
+
+        loading = false;
+    }
+
+    private void GoToCourses(int id)
+    {
+        navManager.NavigateTo($"/courses/{id}");
+    }
+}

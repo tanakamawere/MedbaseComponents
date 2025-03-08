@@ -3,12 +3,15 @@
 @using MedbaseLibrary.Models
 @using MedbaseLibrary.Services
 @using MedbaseComponents.Controls
+@using Microsoft.JSInterop
 @using Microsoft.Maui.Devices
 @inherits MedbaseComponents.Pages.BasePage
 @inject IApiRepository repository
 @inject IDialogService DialogService
 @inject NavigationManager navManager
 @inject ISnackbar Snackbar
+@inject TopicsClient topicsClient
+@inject IJSRuntime JSRuntime
 
 <PageTitle>@title</PageTitle>
 
@@ -47,6 +50,7 @@
             }
             else
             {
+                <HeaderComponent Title="Topics" Subtitle="Topics on your chosen course" />
                 <Virtualize Items="TopicsList.ToList()" TItem="Topic" Context="item">
                     <ItemContent>
                         <MudItem lg="4" Class="mb-2">
@@ -88,6 +92,31 @@
                         </MudItem>
                     </ItemContent>
                 </Virtualize>
+
+                if (Files.Any())
+                {
+                    <HeaderComponent Title="Files" Subtitle="Resources and Files for you to download" />
+                    <Virtualize Items="Files.ToList()" TItem="FileMetadata" Context="item">
+                        <ItemContent>
+                            <MudItem lg="4" Class="mb-2">
+                                <MudCard>
+                                    <MudCardHeader>
+                                        <CardHeaderContent>
+                                            <MudText Typo="Typo.h6">
+                                                @item.FileName
+                                            </MudText>
+                                        </CardHeaderContent>
+                                    </MudCardHeader>
+                                    <MudCardActions>
+                                        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => DownloadFile(item)">
+                                            Download File
+                                        </MudButton>
+                                    </MudCardActions>
+                                </MudCard>
+                            </MudItem>
+                        </ItemContent>
+                    </Virtualize>
+                }
             }
         </div>
     </div>
@@ -119,6 +148,7 @@
     };
 
     private IEnumerable<Topic> TopicsList { get; set; } = Enumerable.Empty<Topic>();
+    private IEnumerable<FileMetadata> Files { get; set; } = Enumerable.Empty<FileMetadata>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -131,7 +161,12 @@
     protected async override Task OnParametersSetAsync()
     {
         isLoading = true;
-        TopicsList = await repository.GetTopics(courseRef);
+        var response = await topicsClient.GetTopicsAndFilesAsync(courseRef);
+        if (response.IsSuccess)
+        {
+            TopicsList = response.Data.Topics;
+            Files = response.Data.Files;
+        }
         isLoading = false;
     }
 
@@ -217,5 +252,11 @@
     private void Question2Types(Topic topic)
     {
         navManager.NavigateTo($"/questions2/{topic.TopicRef}");
+    }
+
+    private async void DownloadFile(FileMetadata fileMetadata)
+    {
+        //Initiate download from File uri
+        await JSRuntime.InvokeVoidAsync("downloadFile", fileMetadata.FileUrl);
     }
 }
