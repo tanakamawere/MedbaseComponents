@@ -1,11 +1,15 @@
 ﻿@page "/questions/{topicRef:int}"
 @page "/questions/{topicRef:int}/{source}"
+@using Medbase.Application.Services
+@using MedbaseComponents.Shared
 @using MedbaseLibrary.Models
 @using MedbaseLibrary.Services
 @using MedbaseComponents.Controls
 @inject IDialogService DialogService
 @inject QuestionClient questionClient
 @inject IApiRepository repository
+@inject UserService userService
+@inject ISnackbar Snackbar
 @inherits BasePage
 @inject NavigationManager navManager
 @using Markdig
@@ -74,9 +78,6 @@
                                     @question.Id - @question.QuestionMain
                                 </MudText>
                             </CardHeaderContent>
-                            <CardHeaderActions>
-                                <MudIconButton Icon="@Icons.Material.Filled.Feedback" OnClick="() => OpenDialog(question.Id)" Color="Color.Default" />
-                            </CardHeaderActions>
                         </MudCardHeader>
                         <MudCardContent>
                             <input hidden asp-for="@question.Id" />
@@ -88,6 +89,8 @@
                                     Child="@question.ChildA" 
                                     Answer="@question.AnswerA" 
                                     Explanation="@question.ExplanationA"
+                                    EditClicked="@(() => OpenQuestionFeedbackDialog(question.Id))"
+                                    FeedbackClicked="@(() => OpenQuestionRatingDialog(question.Id))"
                                     AskMedbaseClicked="@(() => AskAIQuestion(question.QuestionMain, question.ChildA, question.AnswerA))" />
                                 </div>
                             </div>
@@ -99,6 +102,8 @@
                                     Child="@question.ChildB" 
                                     Answer="@question.AnswerB" 
                                     Explanation="@question.ExplanationB"
+                                    EditClicked="@(() => OpenQuestionFeedbackDialog(question.Id))"
+                                    FeedbackClicked="@(() => OpenQuestionRatingDialog(question.Id))"
                                     AskMedbaseClicked="@(() => AskAIQuestion(question.QuestionMain, question.ChildB, question.AnswerB))" />
                                 </div>
                             </div>
@@ -110,6 +115,8 @@
                                     Child="@question.ChildC" 
                                     Answer="@question.AnswerC" 
                                     Explanation="@question.ExplanationC"
+                                    EditClicked="@(() => OpenQuestionFeedbackDialog(question.Id))"
+                                    FeedbackClicked="@(() => OpenQuestionRatingDialog(question.Id))"
                                     AskMedbaseClicked="@(() => AskAIQuestion(question.QuestionMain, question.ChildC, question.AnswerC))" />
                                 </div>
                             </div>
@@ -121,6 +128,8 @@
                                     Child="@question.ChildD" 
                                     Answer="@question.AnswerD" 
                                     Explanation="@question.ExplanationD"
+                                    EditClicked="@(() => OpenQuestionFeedbackDialog(question.Id))"
+                                    FeedbackClicked="@(() => OpenQuestionRatingDialog(question.Id))"
                                     AskMedbaseClicked="@(() => AskAIQuestion(question.QuestionMain, question.ChildD, question.AnswerD))" />
                                 </div>
                             </div>
@@ -133,6 +142,8 @@
                                     Child="@question.ChildE" 
                                     Answer="@question.AnswerE" 
                                     Explanation="@question.ExplanationE"
+                                    EditClicked="@(() => OpenQuestionFeedbackDialog(question.Id))"
+                                    FeedbackClicked="@(() => OpenQuestionRatingDialog(question.Id))"
                                     AskMedbaseClicked="@(() => AskAIQuestion(question.QuestionMain, question.ChildE, question.AnswerE))" />
                                 </div>
                             </div>
@@ -166,6 +177,7 @@
     //QuestionPaged QuestionPaged = new ();
     QuestionPaged QuestionPagedWithTopic = new();
     private List<Question> QuestionsList { get; set; } = new();
+    private string UserId = "";
 
 
     private string description = "Questions on your chosen topic";
@@ -184,6 +196,12 @@
         new BreadcrumbItem("Topics", href: "/courses", icon: Icons.Material.Filled.LibraryBooks),
         new BreadcrumbItem("Questions", href: "/courses", icon: Icons.Material.Filled.QuestionAnswer),
     };
+
+    protected override async Task OnInitializedAsync()
+    {
+        UserId = await userService.GetUserIdAsync();
+    }
+
     protected override async Task OnParametersSetAsync()
     {
         await GetQuestions();
@@ -231,18 +249,6 @@
     }
     private void OpenSearchBar() => searchBarOpen = !searchBarOpen;
     private void OpenToolbar() => showToolbar = !showToolbar;
-    private void OpenDialog(int questionId)
-    {
-        var parameters = new DialogParameters<CorrectionsDialog>();
-        parameters.Add(x => x.questionId, questionId);
-        var options = new DialogOptions()
-            {
-                CloseButton = true,
-                MaxWidth = MaxWidth.ExtraSmall,
-                Position = DialogPosition.Center,
-            };
-        DialogService.Show<CorrectionsDialog>("Submit Answer Correction", parameters, options);
-    }
 
     private async Task OpenSearchDialog()
     {
@@ -303,6 +309,58 @@
             };
         DialogService.Show<AskAiDialog>("Ask Medbase AI", parameters, options);
     }
+
+    //Open QuestionRatingDialog
+    private async Task OpenQuestionRatingDialog(int questionId)
+    {
+        //Check if userId is null
+        if (string.IsNullOrEmpty(UserId))
+        {
+            Snackbar.Add("Please login to rate questions", Severity.Error);
+            return;
+        }
+
+        var parameters = new DialogParameters<QuestionRatingDialog>();
+        parameters.Add(x => x.questionId, questionId);
+        parameters.Add(x => x.userId, UserId);
+
+        var options = new DialogOptions()
+            {
+                CloseButton = false,
+                MaxWidth = MaxWidth.ExtraLarge,
+                Position = DialogPosition.Center,
+                FullWidth = false,
+                CloseOnEscapeKey = true,
+                NoHeader = false,
+                FullScreen = false,
+            };
+        DialogService.Show<QuestionRatingDialog>("Rate Question", parameters, options);
+    }
+    //Open QuestionFeedbackDialog
+    private async Task OpenQuestionFeedbackDialog(int questionId)
+    {
+        //Check if userId is null
+        if (string.IsNullOrEmpty(UserId))
+        {
+            Snackbar.Add("Please login to give feedback", Severity.Error);
+            return;
+        }
+        var parameters = new DialogParameters<QuestionFeedbackDialog>();
+        parameters.Add(x => x.questionId, questionId);
+        parameters.Add(x => x.userId, UserId);
+        var options = new DialogOptions()
+            {
+                CloseButton = false,
+                MaxWidth = MaxWidth.ExtraLarge,
+                Position = DialogPosition.Center,
+                FullWidth = false,
+                CloseOnEscapeKey = true,
+                NoHeader = false,
+                FullScreen = false,
+            };
+        DialogService.Show<QuestionFeedbackDialog>("Feedback", parameters, options);
+    }
+
 
     private async Task CloseSearch()
     {

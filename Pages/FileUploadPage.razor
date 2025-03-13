@@ -1,45 +1,177 @@
 @page "/upload"
 @using Medbase.Application.Services
+@using Microsoft.AspNetCore.Components.Authorization
 @inject FileStorageClient fileStorageClient
 @inject UserService userService
+@inject CoursesClient coursesClient
+@inject ISnackbar Snackbar
 
-<h3>File Upload</h3>
+<MudContainer MaxWidth="MaxWidth.Medium">
 
-<MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
-    <ActivatorContent>
-        <MudButton Variant="Variant.Filled"
-        Color="Color.Primary"
-        StartIcon="@Icons.Material.Filled.CloudUpload">
-            Upload Files
-        </MudButton>
-    </ActivatorContent>
-</MudFileUpload>
+    <MedbaseComponents.Shared.HeaderComponent Title="Upload Files" Subtitle="To share" />
 
-<MudButton OnClick="UploadAsync">
-    <MudIcon Icon="@Icons.Material.Filled.CloudUpload"/>
-    Upload Files
-</MudButton>
+    <AuthorizeView>
+        <Authorized>
+            @if (IsBusy)
+            {
+                <MedbaseComponents.Shared.LoadingComponent Message="Uploading the documents... Please be patient" />
+            }
+            else
+            {
+                <MudSelect T="string" Label="Course" ValueChanged="GetSelectedCourse">
+                    @foreach (Course item in Courses)
+                    {
+                        <MudSelectItem Value="@item.CourseRef">@item.Title</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudStack Style="width: 100%">
+                    <MudFileUpload T="IReadOnlyList<IBrowserFile>"
+                    FilesChanged="InputFilesChanged"
+                    AppendMultipleFiles
+                    Hidden="@false"
+                    InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10"
+                    InputStyle="opacity:0"
+                    tabindex="-1"
+                    @ondrop="@ClearDragClass"
+                    @ondragenter="@SetDragClass"
+                    @ondragleave="@ClearDragClass"
+                    @ondragend="@ClearDragClass">
+                        <ActivatorContent>
+                            <MudPaper Height="300px"
+                            Outlined="true"
+                            Class="@_dragClass">
+                                <MudText Typo="Typo.h6">
+                                    Drag and drop files here or click
+                                </MudText>
+                                @foreach (var file in _files)
+                                {
+                                    <MudChip T="string"
+                                    Color="Color.Dark"
+                                    Text="@file.Name"
+                                    tabindex="-1" />
+                                }
+                            </MudPaper>
+                        </ActivatorContent>
+                    </MudFileUpload>
+                    <MudToolBar Gutters="@false"
+                    Class="relative d-flex justify-end gap-4">
+                        <MudButton Color="Color.Primary"
+                        Disabled="@(!_files.Any())"
+                        OnClick="@Upload"
+                        Variant="Variant.Filled">
+                            Upload
+                        </MudButton>
+                        <MudButton Color="Color.Error"
+                        Disabled="@(!_files.Any())"
+                        OnClick="@ClearAsync"
+                        Variant="Variant.Filled">
+                            Clear
+                        </MudButton>
+                    </MudToolBar>
+                </MudStack>
+            }
+        </Authorized>
+        <NotAuthorized>
+            <LoginBanner />
+        </NotAuthorized>
+    </AuthorizeView>
+
+
+</MudContainer>
 
 @code {
+    private const string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
+    private string _dragClass = DefaultDragClass;
+    private IList<IBrowserFile> _files = new List<IBrowserFile>();
+    private IEnumerable<Course> Courses { get; set; } = [];
+    private Course SelectedCourse = new();
+    private string UserId = "";
+    private bool IsBusy = false;
+    // Define the maximum file size allowed (2 GB)
+    long maxFileSize = 2L * 1024L * 1024L * 1024L;
 
-    private async Task UploadFile(InputFileChangeEventArgs e)
+    protected override async Task OnInitializedAsync()
     {
+        await GetCoursesAsync();
+        await GetUserIdAsync();
+    }
+    private async Task GetCoursesAsync()
+    {
+        var response = await coursesClient.GetCoursesAsync();
+
+        if (response.IsSuccess)
+            Courses = response.Data.ToList();
     }
 
-    IList<IBrowserFile> _files = new List<IBrowserFile>();
-    private void UploadFiles(IBrowserFile file)
+    private async Task GetUserIdAsync()
     {
-        _files.Add(file);
-        //TODO upload the files to the server
-    }
-
-    private async Task UploadAsync()
-    {
-        foreach (var file in _files)
+        if (await userService.IsLoggedIn())
         {
-            var fileStream = file.OpenReadStream();
-            var fileName = file.Name;
-            await fileStorageClient.UploadFileAsync(fileStream, fileName, await userService.GetUserIdAsync());
+            UserId = await userService.GetUserIdAsync();
         }
     }
+
+    private async Task ClearAsync()
+    {
+        _files.Clear();
+        ClearDragClass();
+    }
+
+    private void InputFilesChanged(IReadOnlyList<IBrowserFile> files)
+    {
+        ClearDragClass();
+        foreach (var file in files)
+        {
+            this._files.Add(file);
+        }
+    }
+
+    private async Task GetSelectedCourse(string e)
+    {
+        SelectedCourse = Courses.FirstOrDefault(x => x.CourseRef == e);
+    }
+
+    private async Task Upload()
+    {
+        IsBusy = true;
+        try
+        {
+            // Make sure a course is selected
+            if (SelectedCourse.CourseRef == null)
+            {
+                Snackbar.Add("Please select a course", Severity.Error);
+                return;
+            }
+
+            // Handle file upload for each file
+            foreach (var file in _files)
+            {
+                var fileStream = file.OpenReadStream(maxAllowedSize: maxFileSize);
+                var response = await fileStorageClient.UploadFileAsync(fileStream, SelectedCourse.CourseRef, UserId, file.Name, file.ContentType);
+                if (response.IsSuccess)
+                {
+                    Snackbar.Add($"File {file.Name} uploaded successfully", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add($"Error uploading file {file.Name}: {response.ErrorMessage}", Severity.Error);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private void SetDragClass()
+        => _dragClass = $"{DefaultDragClass} mud-border-primary";
+
+    private void ClearDragClass()
+        => _dragClass = DefaultDragClass;
 }

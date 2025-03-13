@@ -1,5 +1,6 @@
 ﻿@page "/topics/{courseRef}"
 @using MedbaseComponents.Shared
+@using MedbaseLibrary.DataTransferObjects
 @using MedbaseLibrary.Models
 @using MedbaseLibrary.Services
 @using MedbaseComponents.Controls
@@ -12,6 +13,7 @@
 @inject ISnackbar Snackbar
 @inject TopicsClient topicsClient
 @inject IJSRuntime JSRuntime
+@inject FileStorageClient fileStorageClient
 
 <PageTitle>@title</PageTitle>
 
@@ -50,25 +52,122 @@
             }
             else
             {
-                <HeaderComponent Title="Topics" Subtitle="Topics on your chosen course" />
-                <Virtualize Items="TopicsList.ToList()" TItem="Topic" Context="item">
-                    <ItemContent>
-                        <MudItem lg="4" Class="mb-2">
-                            <MudCard>
-                                <MudCardHeader>
-                                    <CardHeaderContent>
-                                        <MudText Typo="Typo.h6">
-                                            @item.Name
-                                        </MudText>
-                                    </CardHeaderContent>
-                                </MudCardHeader>
-                                <MudCardActions>
-                                    <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToQuestions(item)">True/False Questions</MudButton>
-                                    <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => Question2Types(item)">New Questions</MudButton>
-                                    @* <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => Download(item)">Download</MudButton> *@
-                                </MudCardActions>
-                            </MudCard>
-                            @*<div class="card h-100 shadow border-0">
+                if (Files.Any())
+                {
+
+                    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+                        <MudTabPanel Text="Topics">
+                            <div>
+                                <HeaderComponent Title="Topics" Subtitle="Topics on your chosen course" />
+                                <MudGrid>
+                                    @foreach (var item in TopicsList.ToList())
+                                    {
+                                        <MudItem lg="4" Class="mb-2">
+                                            <MudCard>
+                                                <MudCardHeader>
+                                                    <CardHeaderContent>
+                                                        <MudText Typo="Typo.h6">
+                                                            @item.Name
+                                                        </MudText>
+                                                    </CardHeaderContent>
+                                                </MudCardHeader>
+                                                <MudCardActions>
+                                                    <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToQuestions(item)">True/False Questions</MudButton>
+                                                    <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => Question2Types(item)">New Questions</MudButton>
+                                                    @* <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => Download(item)">Download</MudButton> *@
+                                                </MudCardActions>
+                                            </MudCard>
+                                        </MudItem>
+                                    }
+                                </MudGrid>
+                            </div>
+                        </MudTabPanel>
+                        <MudTabPanel Text="Files">
+                            <div>
+                                <HeaderComponent Title="Files" Subtitle="Resources and Files for you to download">
+                                    <MudSwitch Ripple="true" T="bool" @bind-Value="ShowFilesAsCards" Label="Toggle appearance of your files" />
+                                </HeaderComponent>
+                                @if (ShowFilesAsCards)
+                                {
+                                    <MudGrid>
+                                        @foreach (var item in Files.ToList())
+                                        {
+                                            <MudItem xs="4" Class="mb-2">
+                                                <MudCard>
+                                                    <MudCardHeader>
+                                                        <CardHeaderContent>
+                                                            <MudText Typo="Typo.h6">
+                                                                @item.FileName
+                                                            </MudText>
+                                                        </CardHeaderContent>
+                                                    </MudCardHeader>
+                                                    <MudCardActions>
+                                                        <MudButton OnClick="() => DownloadFile(item)">
+                                                            Download
+                                                        </MudButton>
+                                                    </MudCardActions>
+                                                </MudCard>
+                                            </MudItem>
+                                        }
+                                    </MudGrid>
+                                }
+                                else
+                                {
+                                    <MudTable Items="Files"
+                                              FixedHeader="true"
+                                              Dense="true"
+                                              Bordered="true">
+                                        <HeaderContent>
+                                            <MudTh>
+                                                <MudTableSortLabel SortBy="new Func<FileMetadata, object>(x => x.FileName)">
+                                                    Filename
+                                                </MudTableSortLabel>
+                                            </MudTh>
+                                            <MudTh>
+                                                <MudTableSortLabel SortBy="new Func<FileMetadata, object>(x => x.UploadedAt)">
+                                                    Uploaded
+                                                </MudTableSortLabel>
+                                            </MudTh>
+                                            <MudTh>
+                                                Actions
+                                            </MudTh>
+                                        </HeaderContent>
+                                        <RowTemplate>
+                                            <MudTd DataLabel="Filename">@context.FileName</MudTd>
+                                            <MudTd DataLabel="Uploaded">@context.UploadedAt</MudTd>
+                                            <MudTd>
+                                                <MudButton OnClick="() => DownloadFile(context)">
+                                                    Download
+                                                </MudButton>
+                                            </MudTd>
+                                        </RowTemplate>
+                                    </MudTable>
+                                }
+                            </div>
+                        </MudTabPanel>
+                    </MudTabs>
+                }
+                else
+                {
+                    <HeaderComponent Title="Topics" Subtitle="Topics on your chosen course" />
+                    <Virtualize Items="TopicsList.ToList()" TItem="Topic" Context="item">
+                        <ItemContent>
+                            <MudItem lg="4" Class="mb-2">
+                                <MudCard>
+                                    <MudCardHeader>
+                                        <CardHeaderContent>
+                                            <MudText Typo="Typo.h6">
+                                                @item.Name
+                                            </MudText>
+                                        </CardHeaderContent>
+                                    </MudCardHeader>
+                                    <MudCardActions>
+                                        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => GoToQuestions(item)">True/False Questions</MudButton>
+                                        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => Question2Types(item)">New Questions</MudButton>
+                                        @* <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => Download(item)">Download</MudButton> *@
+                                    </MudCardActions>
+                                </MudCard>
+                                @*<div class="card h-100 shadow border-0">
                                 <div class="card-body p-4">
                                     <div class="container-fluid text-center border-0 shadow card-footer mt-2" style="display:@(showCustomisation.Equals(true) && topicToCustomise == item.TopicRef ? "block" : "none")">
                                         <h6 class="fw-bold">Customise Quiz🛠️z</h6>
@@ -89,30 +188,6 @@
                                     </div>
                                 </div>
                             </div>*@
-                        </MudItem>
-                    </ItemContent>
-                </Virtualize>
-
-                if (Files.Any())
-                {
-                    <HeaderComponent Title="Files" Subtitle="Resources and Files for you to download" />
-                    <Virtualize Items="Files.ToList()" TItem="FileMetadata" Context="item">
-                        <ItemContent>
-                            <MudItem lg="4" Class="mb-2">
-                                <MudCard>
-                                    <MudCardHeader>
-                                        <CardHeaderContent>
-                                            <MudText Typo="Typo.h6">
-                                                @item.FileName
-                                            </MudText>
-                                        </CardHeaderContent>
-                                    </MudCardHeader>
-                                    <MudCardActions>
-                                        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => DownloadFile(item)">
-                                            Download File
-                                        </MudButton>
-                                    </MudCardActions>
-                                </MudCard>
                             </MudItem>
                         </ItemContent>
                     </Virtualize>
@@ -125,9 +200,11 @@
 @code {
     [Parameter]
     public string courseRef { get; set; } = "1";
-
     [Inject]
     public IDatabaseRepository databaseRepository { get; set; }
+
+    bool ShowFilesAsCards = false;
+
     bool showCustomisation = false;
     int topicToCustomise;
     private bool negativeMarking = false;
@@ -140,15 +217,17 @@
     private string image = "https://i.postimg.cc/T1DjN4S5/Logo.png";
 
 
+    private IEnumerable<Topic> TopicsList { get; set; } = Enumerable.Empty<Topic>();
+    private IEnumerable<FileMetadata> Files { get; set; } = Enumerable.Empty<FileMetadata>();
+    private TopicsAndFilesDto topicsAndFiles = new(); 
+
+
     private List<BreadcrumbItem> _items = new List<BreadcrumbItem>
     {
         new BreadcrumbItem("Home", href: "#", icon: Icons.Material.Filled.Home),
         new BreadcrumbItem("Courses", href: "/courses", icon: Icons.Material.Filled.Book),
         new BreadcrumbItem("Topics", href: "/courses", icon: Icons.Material.Filled.LibraryBooks)
     };
-
-    private IEnumerable<Topic> TopicsList { get; set; } = Enumerable.Empty<Topic>();
-    private IEnumerable<FileMetadata> Files { get; set; } = Enumerable.Empty<FileMetadata>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -160,14 +239,39 @@
 
     protected async override Task OnParametersSetAsync()
     {
+        await GetTopics();
+        await GetFiles();
+    }
+
+    // private async Task GetTopicsAndFilesAsync()
+    // {
+    //     isLoading = true;
+    //     var response = await topicsClient.GetTopicsAndFilesAsync(courseRef);
+    //     if (response.IsSuccess)
+    //     {
+    //         topicsAndFiles = response.Data;
+    //     }
+
+    //     TopicsList = topicsAndFiles.Topics;
+    //     Files = topicsAndFiles.Files;
+
+    //     isLoading = false;
+    // }
+
+    private async Task GetTopics()
+    {
         isLoading = true;
-        var response = await topicsClient.GetTopicsAndFilesAsync(courseRef);
+        TopicsList = await repository.GetTopics(courseRef);
+        isLoading = false;
+    }
+
+    private async Task GetFiles()
+    {
+        var response = await fileStorageClient.GetFilesByCoursesRefAsync(courseRef);
         if (response.IsSuccess)
         {
-            TopicsList = response.Data.Topics;
-            Files = response.Data.Files;
+            Files = response.Data;
         }
-        isLoading = false;
     }
 
     private void ToggleNegativeMarking()
@@ -257,6 +361,6 @@
     private async void DownloadFile(FileMetadata fileMetadata)
     {
         //Initiate download from File uri
-        await JSRuntime.InvokeVoidAsync("downloadFile", fileMetadata.FileUrl);
+        await JSRuntime.InvokeVoidAsync("triggerFileDownload", fileMetadata.FileName, fileMetadata.FileUrl);
     }
 }

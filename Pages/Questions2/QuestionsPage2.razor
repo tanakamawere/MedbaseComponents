@@ -286,6 +286,13 @@
 
     private async Task OpenQuestionFeedbackDialog(int questionId)
     {
+        //Check if userId is not null
+        if (string.IsNullOrEmpty(await userService.GetUserIdAsync()))
+        {
+            await DialogService.ShowMessageBox("Login Required", "Please login to submit feedback", "OK");
+            return;
+        }
+
         var parameters = new DialogParameters<QuestionFeedbackDialog>();
         parameters.Add(x => x.questionId, questionId);
         parameters.Add(x => x.userId, await userService.GetUserIdAsync());
